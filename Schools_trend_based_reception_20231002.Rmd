@@ -1,0 +1,718 @@
+---
+title: "Reception + trend-based popn, 09/10/2023"
+output: 
+  html_document:
+    css: Wil_style.css
+    theme: default
+    toc: TRUE
+    toc_float: TRUE
+    number_sections: TRUE
+always_allow_html: yes
+---
+
+```{r setup1, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+library(zoo)
+library(data.table)
+library(tidyverse)
+library(gglaplot)
+library(ggplot2)
+library(scales)
+library(readxl)
+library(knitr)
+library(sf)
+library(sp)
+library(kableExtra)
+library(magick)
+library(cowplot)
+library(plotly)    
+library(RColorBrewer)
+library(htmltools)
+library(prettydoc)
+library(rmdformats)
+
+# data_dir <- 'C:/Migration/Migration_R/DATA/Domestic/copied_from_Qdrive_20220614/'
+chart_dir <- 'C:/Families/Charts/'
+
+# Disable scientific notation
+options(scipen=999)
+
+```
+
+```{r setup_population, include=FALSE}
+
+# Population DATA for 4 year olds 
+
+boroughcodes <- read.csv("C:/Migration/Migration_R/DATA/Domestic/InnerLondon.csv") %>%   
+  data.frame
+
+cityORcounty_codes <- read.csv("C:/Migration/Migration_R/DATA/Domestic/cityORcounty.csv") %>%   
+  data.frame
+
+#glimpse(cityORcounty_codes)
+
+input_fourYearOlds_population_wide <- read_csv("Trend_based(10years)_projected_fourYearOlds_England.csv", 
+                                               col_names = TRUE) %>%
+    data.frame() 
+
+input_fourYearOlds_population_long <-input_fourYearOlds_population_wide %>%
+    left_join(cityORcounty_codes, by=c("gss_code"="la_code"))%>% 
+pivot_longer(-c(gss_code, gss_name, la_name, cityORcounty_code, cityORcounty_name), 
+             values_to = "number", names_to = "Year") %>%
+   mutate(across(c('Year'), substr, 2, nchar(Year))) %>%
+ # mutate(Inner_factor = as.factor(Inner)) %>%
+ # mutate(Inner_factor= recode(Inner, "1"="Inner", "0"="Outer", "2" = "Other")) %>%
+  data.frame()
+
+#unique(input_fourYearOlds_population_long$la_name)
+
+
+```
+
+```{r fig_London_pop_line_1, fig.height = 5.56, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+# Plot population of four year olds over time for each London borough
+
+catcolour2 = rev(c('#e41a1c','#377eb8'))
+
+fourYO_lines <- input_fourYearOlds_population_long %>%
+  filter(grepl('E09000', gss_code)) %>%
+    filter(gss_name != "City of London") %>%
+   ggplot(aes(x = Year, y = number, group = gss_name, color = cityORcounty_name
+             , text = paste("Year  :", Year,
+                            "<br>Borough : ", la_name,
+                            "<br>Number :", round(number, digits = 0))
+  )) +
+  theme_gla() +
+  geom_line() + 
+ scale_color_manual(name='Zone:', values = catcolour2) +
+ scale_x_discrete(name ="Year", breaks=c("2011", "2016", "2021","2026")) +
+  labs(title= "Numbers of four year olds, London, 2011 - 2026", 
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+
+ggplotly(fourYO_lines, tooltip = "text") %>%
+  style(hoverlabel = list(bgcolor = "white")) %>%
+  layout(title= list(x = 0.05,
+                     text = "<b>Numbers of four year olds, London, 2011 - 2026<b>", 
+                     font=list(size = 15, family = "Arial")))
+
+
+
+```
+
+```{r fig_London_fourYearOlds_pop_2, fig.height = 5.56, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+# Plot numbers over time for regions of UK 
+
+
+colour_palette = c( "#9e0059","#6da7de", "#d82222", "#5ea15d", "#dee000", "#943fa6", "#63c5b5", "#ff38ba", "#eb861e", "#ee266d")
+
+fourYO_lines_regions <- input_fourYearOlds_population_long %>%
+  filter(grepl('E12000', gss_code)) %>%
+  ggplot(aes(x = Year, y = number/1000, group = gss_name, color = gss_name
+             , text = paste("Year  :", Year,
+                            "<br>Region : ", gss_name,
+                            "<br>Number :", round(number, digits = 0))
+  )) +
+  theme_gla() +
+  geom_line() + 
+ scale_color_manual(name='Region:', values = colour_palette) +
+ scale_x_discrete(name ="Year", breaks=c("2011", "2016", "2021","2026")) +
+  labs(title= "Numbers of four year olds by region, 2011 - 2026", 
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+
+ggplotly(fourYO_lines_regions, tooltip = "text") %>%
+  style(hoverlabel = list(bgcolor = "white")) %>%
+  layout(title= list(x = 0.05,
+                     text = "<b>Numbers of four year olds by region, 2011 - 2026<b>", 
+                     font=list(size = 15, family = "Arial")),
+         yaxis = list(title = list(text ='Population (thousands)', 
+                                   font = list(size = 15, family = "Arial", color = "black", 
+                                               fontface = "bold")))) 
+  
+
+```
+
+```{r fig_London_fourYearOlds_pop_3, fig.height = 5.56, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+# Plot indexed numbers over time for regions of UK 
+
+
+colour_palette = c( "#9e0059","#6da7de", "#d82222", "#5ea15d", "#dee000", "#943fa6", "#63c5b5", "#ff38ba", "#eb861e", "#ee266d")
+
+fourYO_lines_regions <- input_fourYearOlds_population_long %>%
+  filter(grepl('E12000', gss_code)) %>%
+  group_by(gss_code) %>% 
+  mutate(Indexed_number = (number/first(number))*100) %>%
+  ggplot(aes(x = Year, y = Indexed_number, group = gss_name, color = gss_name
+             , text = paste("Year  :", Year,
+                            "<br>Region : ", gss_name,
+                            "<br>% of 4 year olds in 2011 :", round(Indexed_number, digits = 0))
+  )) +
+  theme_gla() +
+  geom_line() + 
+  geom_hline(yintercept = 100) +
+ scale_color_manual(name='Region:', values = colour_palette) +
+ scale_x_discrete(name ="Year", breaks=c("2011", "2016", "2021","2026")) +
+  labs(title= "Indexed numbers of four year olds by region, 2011 - 2026", 
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+
+ggplotly(fourYO_lines_regions, tooltip = "text") %>%
+  style(hoverlabel = list(bgcolor = "white")) %>%
+  layout(title= list(x = 0.05,
+                     text = "<b>Indexed numbers of four year olds by region, 2011 - 2026<b>", 
+                     font=list(size = 15, family = "Arial")))
+
+
+```
+
+```{r setup2, include=FALSE}
+
+# SCHOOLS DATA For children 
+
+# Input data for headcounts of reception children and merge with city/county file
+
+input_all_schools_data <- fread("pupils_lad_type_age_2009to22.csv") %>%
+  full_join(cityORcounty_codes, by=c("new_la_code"= "la_code"), keep = TRUE)%>% 
+  mutate(across(c(cityORcounty_code, cityORcounty_name), factor)) %>%
+ data.frame() 
+
+
+```
+
+```{r fig_London_prim_schools_line_1, fig.height = 5.56, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+# Plot reception numbers over time
+
+catcolour2 = rev(c('#e41a1c','#377eb8'))
+
+schools_lines_abs <- input_all_schools_data %>%
+  filter(grepl('E09', new_la_code)) %>%
+  filter(la_name.x != "City of London") %>%
+  filter(age == 4) %>%
+  filter(type == "State-funded") %>%
+  ggplot(aes(x = period_start, y = full_time, group = new_la_code, color = cityORcounty_name, 
+             text = paste("Year  :", period_start,
+                            "<br>Borough : ", la_name.x,
+                            "<br>Head count ", round(full_time, digits = 0))
+  )) +
+  theme_gla() +
+  geom_line() + 
+ scale_color_manual(name='Zone:', values = catcolour2) +
+  labs(title= "State-funded full-time reception pupils, London, 2009 - 2022", 
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+
+ggplotly(schools_lines_abs, tooltip = "text") %>%
+  style(hoverlabel = list(bgcolor = "white")) %>%
+  layout(title= list(x = 0.05,
+                     text = "<b>State-funded full-time reception pupils, London, 2009 - 2022<b>", 
+                     font=list(size = 15, family = "Arial")))
+
+
+
+```
+
+```{r fig_London_prim_schools_line_2, fig.height = 5.56, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+# Plot reception numbers over time, indexed to 2009
+
+catcolour2 = rev(c('#e41a1c','#377eb8'))
+
+schools_lines_ind <- input_all_schools_data %>%
+  filter(grepl('E09', new_la_code)) %>%
+  filter(la_name.x != "City of London") %>%
+  filter(age == 4) %>%
+  filter(type == "State-funded") %>%
+  group_by(la_name.x) %>% 
+  mutate(indexed_headcount = (full_time/first(full_time))*100) %>% 
+  ggplot(aes(x = period_start, y = indexed_headcount, group = new_la_code, color = cityORcounty_name, 
+             text = paste("Year  :", period_start,
+                            "<br>Borough : ", la_name.x,
+                            "<br>Head count ", round(indexed_headcount, digits = 0))
+  )) +
+  theme_gla() +
+  geom_line() + 
+ scale_color_manual(name='Zone:', values = rev(catcolour2)) +
+  labs(title= "State-funded full-time reception pupils, London, indexed to 2009", 
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+
+ggplotly(schools_lines_ind, tooltip = "text") %>%
+  style(hoverlabel = list(bgcolor = "white")) %>%
+  layout(title= list(x = 0.05,
+                     text = "<b>State-funded full-time reception pupils, London, indexed to 2009<b>", 
+                     font=list(size = 15, family = "Arial")))
+
+
+
+```
+
+```{r fig_London_Prim_schools_line_3, fig.height = 5.56, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+# Aggregate by zone of London, and plot again
+
+agg_input_reception_schools <- input_all_schools_data %>%
+  filter(grepl('E09', new_la_code)) %>%
+  filter(la_name.x != "City of London") %>%
+    filter(age == 4) %>%
+  filter(type == "State-funded") %>%
+  group_by(period_start, cityORcounty_name) %>% 
+  summarise(agg_full_time = sum(full_time)) %>%
+ # mutate(Year = as.character(year)) %>%
+  data.frame()
+
+schools_agg_lines <- agg_input_reception_schools %>%
+   ggplot(aes(x = period_start, y = agg_full_time/1000, group = cityORcounty_name, color = cityORcounty_name,
+             text = paste("Year  :", period_start,
+                            "<br>Zone : ", cityORcounty_name,
+                            "<br>Headcount : ", round(agg_full_time, digits = 0))
+  )) +
+  theme_gla() +
+  geom_line() + 
+  scale_color_manual(name='Zone:', values = rev(catcolour2)) +
+  labs(title= "State-funded full-time reception pupils, London, 2009 - 2022", 
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+
+ggplotly(schools_agg_lines, tooltip = "text") %>%
+  style(hoverlabel = list(bgcolor = "white")) %>%
+  layout(title= list(x = 0.05,
+                     text = "<b>State-funded full-time reception pupils, London, 2009 - 2022<b>", 
+                     font=list(size = 15, family = "Arial")),
+         yaxis = list(title = list(text ='Full-time students (thousands)', 
+                                   font = list(size = 15, family = "Arial", color = "black", 
+                                               fontface = "bold")))) 
+
+
+
+```
+
+```{r fig_schools and pop_line_facet1, fig.height = 20, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+input_London_reception_state_schools <- input_all_schools_data %>%
+  filter(grepl('E09', new_la_code)) %>%
+  filter(age == 4) %>%
+  filter(type == "State-funded") %>%
+  mutate(period_start_num = as.numeric(period_start)) %>% 
+  data.frame()
+
+input_London_fourYearOlds_population_long <- input_fourYearOlds_population_long %>%
+  filter(grepl('E09', gss_code)) %>%
+  mutate(Year_num = as.numeric(Year)) %>% 
+  data.frame()
+
+# Combine Population and Schools data
+merged_data <- full_join(input_London_fourYearOlds_population_long, input_London_reception_state_schools,
+                by=c("Year_num" = "period_start_num", "gss_code" = "new_la_code" )) %>%
+     filter(gss_name != "City of London") %>%
+  data.frame()
+
+combo_line_London <- merged_data %>%
+  ggplot() +
+  geom_line(aes(x = Year_num, y = full_time, group = la_name.y, colour = cityORcounty_name.y, linetype = "Schools", 
+                text = paste("Type: Schools", 
+                             "<br>Year: ", Year_num,
+                             "<br>Number of 4 year olds: ", round(full_time, digits = 2)) 
+  ), size = 1) + 
+    geom_line(aes(x = Year_num, y = number, group = la_name.x, colour = cityORcounty_name.x, linetype="Population", 
+                text = paste("Type: Population",
+                             "<br>Year: ", Year_num,
+                             "<br>Number of 4 year olds: ", round(number, digits = 2)) 
+  ), size = 1) + 
+  theme_gla() +
+  scale_color_manual(name='Zone:', values = rev(catcolour2)) +
+  scale_linetype_manual(name = "Data Type: ", values=c("Schools"= "solid", "Population"= "dashed")) +
+  scale_x_continuous(limits = c(2009, 2026), breaks = seq(2009, 2026, by = 5)) +
+  theme(legend.title=element_text(size=14, family = "Arial"),
+        legend.text=element_text(size=11, family = "Arial"),
+        axis.text.x=element_text(color = "black", 
+                                 size=11, family = "Arial"),  #, angle=30, vjust=.8, hjust=0.8
+        axis.text.y=element_text(color = "black", size=11, family = "Arial"), 
+          plot.title = element_text(size=14, family = "Arial", face = "bold"),
+        plot.subtitle = element_text(size=14, family = "Arial")) +
+  labs(title= "Numbers in state-school reception classes and population of four y.o. children", 
+       subtitle= "London boroughs, 2009 - 2025",  
+       caption = paste0("Source: DFE and ONS, Chart: GLA demography")) +
+  facet_wrap(vars(gss_name), ncol=4, scales ='free')
+combo_line_London
+
+ggsave (filename = (paste0(chart_dir, "Schools_and_population_London.png")),
+         plot = combo_line_London,
+         device = "png",
+         dpi=600,
+         width = 9,
+         units = "in")
+
+
+```
+
+```{r fig_schools and pop_line_facet2, fig.height = 6, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+
+input_all_schools_data <- fread("pupils_lad_type_age_2009to22.csv") %>%
+  full_join(cityORcounty_codes, by=c("new_la_code"= "la_code"), keep = TRUE)%>% 
+  mutate(across(c(cityORcounty_code, cityORcounty_name), factor)) %>%
+ data.frame() 
+
+metrop <- c("Merseyside", "South Yorkshire", "West Midlands", "West Yorkshire", "Tyne and Wear", "Inner London", "Outer London", "Greater Manchester")
+
+input_reception_state_schools <- input_all_schools_data %>%
+  filter(age == 4) %>%
+  filter(type == "State-funded") %>%
+  mutate(period_start_num = as.numeric(period_start)) %>% 
+  group_by(cityORcounty_name, period_start_num) %>%
+  summarize(Sum_full_time = sum(full_time)) %>% 
+#  mutate(cityORcounty = 1) %>%
+  data.frame()
+
+input_fourYearOlds_population_long_ed <- input_fourYearOlds_population_long %>%
+  mutate(Year_num = as.numeric(Year)) %>% 
+  group_by(cityORcounty_name, Year_num) %>%
+  summarize(Sum_number = sum(number)) %>%
+  data.frame()
+
+# Combine Population and Schools data
+merged_data = full_join(input_fourYearOlds_population_long_ed,  input_reception_state_schools,
+                                  by=c("Year_num" = "period_start_num", "cityORcounty_name" = "cityORcounty_name")) %>%
+   data.frame()
+
+combo_line_Metrops <- merged_data %>%
+  filter(cityORcounty_name %in% metrop) %>%
+  ggplot() +
+  geom_line(aes(x = Year_num, y = Sum_full_time, group = cityORcounty_name, linetype = "Schools", 
+                text = paste("Type: Schools", 
+                             "<br>Year: ", Year_num,
+                             "<br>Number of 4 year olds: ", round(Sum_full_time, digits = 2)) 
+  ), size = 1) + 
+    geom_line(aes(x = Year_num, y = Sum_number, group = cityORcounty_name, linetype="Population", 
+                text = paste("Type: Population",
+                             "<br>Year: ", Year_num,
+                             "<br>Number of 4 year olds: ", round(Sum_number, digits = 2)) 
+  ), size = 1) + 
+  theme_gla() +
+  scale_color_manual(name='Zone:', values = rev(catcolour2)) +
+  scale_linetype_manual(name = "Data Type: ", values=c("Schools"= "solid", "Population"= "dashed")) +
+  scale_x_continuous(limits = c(2009, 2026), breaks = seq(2009, 2026, by = 5)) +
+ theme(legend.title=element_text(size=14, family = "Arial"),
+        legend.text=element_text(size=11, family = "Arial"),
+        axis.text.x=element_text(color = "black", 
+                                 size=11, family = "Arial"),  #, angle=30, vjust=.8, hjust=0.8
+        axis.text.y=element_text(color = "black", size=11, family = "Arial"), 
+        plot.title = element_text(size=14, family = "Arial", face = "bold"),
+        plot.subtitle = element_text(size=14, family = "Arial")) +
+  labs(title= "Numbers in state-school reception classes and population of four y.o. children", 
+       subtitle= "Metropolitan areas, 2009 - 2025",  
+       caption = paste0("Source: DFE and ONS, Chart: GLA demography")) +
+   facet_wrap(vars(cityORcounty_name), ncol=4, scales='free')
+combo_line_Metrops
+
+ggsave (filename = (paste0(chart_dir, "Schools_and_population_Metrop.png")),
+         plot = combo_line_Metrops,
+         device = "png",
+         dpi=600,
+         width = 9,
+         units = "in")
+
+
+
+```
+
+```{r fig_schools and pop_line_facet3, fig.height = 15, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+# Now redoing to see counties
+
+# go back to original schools data
+input_all_schools_data <- fread("pupils_lad_type_age_2009to22.csv") %>%
+  data.frame() 
+
+input_reception_state_schools <- input_all_schools_data %>%
+  filter(age == 4) %>%
+  filter(type == "State-funded") %>%
+#  mutate(cityORcounty = 1) %>%
+  data.frame()
+
+input_fourYearOlds_population_long_ed <- input_fourYearOlds_population_long %>%
+  mutate(Year_num = as.numeric(Year)) %>% 
+  group_by(cityORcounty_name, Year_num) %>%
+  summarize(Sum_number = sum(number)) %>%
+  data.frame()
+
+# Combine Population and Schools data
+merged_data = full_join(input_fourYearOlds_population_long_ed,  input_reception_state_schools,
+                                  by=c("Year_num" = "period_start", "cityORcounty_name" = "la_name"), keep = TRUE) %>%
+   data.frame()
+
+combo_line_Counties <- merged_data %>%
+#  filter(cityORcounty == 1) %>%
+  filter(!cityORcounty_name %in% metrop) %>%
+  drop_na(cityORcounty_name) %>%
+  ggplot() +
+  geom_line(aes(x = Year_num, y = full_time, group = cityORcounty_name, linetype = "Schools", 
+                text = paste("Type: Schools", 
+                             "<br>Year: ", Year_num,
+                             "<br>Number of 4 year olds: ", round(full_time, digits = 2)) 
+  ), size = 1) + 
+    geom_line(aes(x = Year_num, y = Sum_number, group = cityORcounty_name, linetype="Population", 
+                text = paste("Type: Population",
+                             "<br>Year: ", Year_num,
+                             "<br>Number of 4 year olds: ", round(Sum_number, digits = 2)) 
+  ), size = 1) + 
+  theme_gla() +
+  scale_color_manual(name='Zone:', values = rev(catcolour2)) +
+  scale_linetype_manual(name = "Data Type: ", values=c("Schools"= "solid", "Population"= "dashed")) +
+  scale_x_continuous(limits = c(2009, 2026), breaks = seq(2009, 2026, by = 5)) +
+ theme(legend.title=element_text(size=14, family = "Arial"),
+        legend.text=element_text(size=11, family = "Arial"),
+        axis.text.x=element_text(color = "black", 
+                                 size=11, family = "Arial"),  #, angle=30, vjust=.8, hjust=0.8
+        axis.text.y=element_text(color = "black", size=11, family = "Arial"), 
+        plot.title = element_text(size=14, family = "Arial", face = "bold"),
+        plot.subtitle = element_text(size=14, family = "Arial")) +
+  labs(title= "Numbers in state-school reception classes and population of four y.o. children", 
+       subtitle= "Counties, 2009 - 2025",  
+       caption = paste0("Source: DFE and ONS, Chart: GLA demography")) +
+   facet_wrap(vars(cityORcounty_name), ncol=4, scales='free')
+combo_line_Counties
+
+ggsave (filename = (paste0(chart_dir, "Schools_and_population_Counties.png")),
+         plot = combo_line_Counties,
+         device = "png",
+         dpi=600,
+         width = 9,
+         units = "in")
+
+```
+
+
+```{r fig_schools and pop_line_facet_EastSussex, fig.height = 5.56, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+# Now redoing for single county
+# Best to filter schools data rather than at the point where you make the plot
+
+input_all_schools_data <- fread("pupils_lad_type_age_2009to22.csv") %>%
+  data.frame() 
+
+input_reception_state_schools <- input_all_schools_data %>%
+  filter(age == 4) %>%
+  filter(type == "State-funded") %>%
+  filter(la_name == "East Sussex") %>%
+  mutate(period_start_num = as.numeric(period_start)) %>% 
+  data.frame()
+
+input_fourYearOlds_population_long_ed <- input_fourYearOlds_population_long %>%
+  mutate(Year_num = as.numeric(Year)) %>% 
+  group_by(cityORcounty_name, Year_num) %>%
+  summarize(Sum_number = sum(number)) %>%
+  filter(cityORcounty_name == "East Sussex") %>%
+  data.frame()
+
+combo_line <- ggplot() +
+  geom_line(data = input_reception_state_schools,  
+            aes(x = period_start_num, y = full_time, 
+                group = la_name, linetype = "Schools", 
+                text = paste("Type: Schools", 
+                             "<br>Year: ", period_start_num,
+                             "<br>Number of 4 year olds: ", round(full_time, digits = 2)) 
+  ), size = 1) + 
+    geom_line(data = input_fourYearOlds_population_long_ed, 
+              aes(x = Year_num, y = Sum_number, 
+                  group = cityORcounty_name, linetype="Population", 
+                text = paste("Type: Population",
+                             "<br>Year: ", Year_num,
+                             "<br>Number of 4 year olds: ", round(Sum_number, digits = 2)) 
+  ), size = 1) + 
+  theme_gla() +
+  theme(axis.text.x=element_text(color = "black", 
+                                 size=11, family = "Arial"),  #, angle=30, vjust=.8, hjust=0.8
+        axis.text.y=element_text(color = "black", size=11, family = "Arial")) +
+  scale_color_manual(name='Zone:', values = rev(catcolour2)) +
+#  scale_color_manual(name='Zone:', values=c('Inner'="#e41a1c","Outer" = "#377eb8")) +
+  scale_linetype_manual(name = "Data Type: ", values=c("Schools"= "solid", "Population"= "dashed")) +
+# scale_color_manual(name='Data Type:', values=c('Schools'="orange","Population" = "blue")) +
+  scale_x_continuous(limits = c(2009, 2026), breaks = seq(2009, 2026, by = 5)) +
+  theme(legend.title=element_text(size=14, family = "Arial"),
+        legend.text=element_text(size=11, family = "Arial"),
+        axis.text.x=element_text(color = "black", 
+                                 size=11, family = "Arial"),  #, angle=30, vjust=.8, hjust=0.8
+        axis.text.y=element_text(color = "black", size=11, family = "Arial")) +
+  labs(title= "Reception and Numbers of four year olds, East Sussex, 2009 - 2025", 
+     caption = paste0("Source: ONS, Chart: GLA demography"))
+combo_line
+ 
+
+
+```
+
+```{r fig_schools and pop_line_facet_Hampshire, fig.height = 5.56, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+input_all_schools_data <- fread("pupils_lad_type_age_2009to22.csv") %>%
+  data.frame() 
+
+input_reception_state_schools <- input_all_schools_data %>%
+  filter(age == 4) %>%
+  filter(type == "State-funded") %>%
+  filter(la_name == "Hampshire") %>%
+  mutate(period_start_num = as.numeric(period_start)) %>% 
+  data.frame()
+
+input_fourYearOlds_population_long_ed <- input_fourYearOlds_population_long %>%
+  mutate(Year_num = as.numeric(Year)) %>% 
+  group_by(cityORcounty_name, Year_num) %>%
+  summarize(Sum_number = sum(number)) %>%
+  filter(cityORcounty_name == "Hampshire") %>%
+  data.frame()
+
+combo_line <- ggplot() +
+  geom_line(data = input_reception_state_schools,  
+            aes(x = period_start_num, y = full_time, 
+                group = la_name, linetype = "Schools", 
+                text = paste("Type: Schools", 
+                             "<br>Year: ", period_start_num,
+                             "<br>Number of 4 year olds: ", round(full_time, digits = 2)) 
+  ), size = 1) + 
+    geom_line(data = input_fourYearOlds_population_long_ed, 
+              aes(x = Year_num, y = Sum_number, 
+                  group = cityORcounty_name, linetype="Population", 
+                text = paste("Type: Population",
+                             "<br>Year: ", Year_num,
+                             "<br>Number of 4 year olds: ", round(Sum_number, digits = 2)) 
+  ), size = 1) + 
+  theme_gla() +
+  theme(axis.text.x=element_text(color = "black", 
+                                 size=11, family = "Arial"),  #, angle=30, vjust=.8, hjust=0.8
+        axis.text.y=element_text(color = "black", size=11, family = "Arial")) +
+  scale_color_manual(name='Zone:', values = rev(catcolour2)) +
+#  scale_color_manual(name='Zone:', values=c('Inner'="#e41a1c","Outer" = "#377eb8")) +
+  scale_linetype_manual(name = "Data Type: ", values=c("Schools"= "solid", "Population"= "dashed")) +
+# scale_color_manual(name='Data Type:', values=c('Schools'="orange","Population" = "blue")) +
+  scale_x_continuous(limits = c(2009, 2026), breaks = seq(2009, 2026, by = 5)) +
+  theme(legend.title=element_text(size=14, family = "Arial"),
+        legend.text=element_text(size=11, family = "Arial"),
+        axis.text.x=element_text(color = "black", 
+                                 size=11, family = "Arial"),  #, angle=30, vjust=.8, hjust=0.8
+        axis.text.y=element_text(color = "black", size=11, family = "Arial")) +
+  labs(title= "Reception and Numbers of four year olds, Hampshire, 2009 - 2025", 
+     caption = paste0("Source: ONS, Chart: GLA demography"))
+ combo_line
+
+
+```
+
+```{r fig_schools and pop_line_facet_Kent, fig.height = 5.56, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+input_all_schools_data <- fread("pupils_lad_type_age_2009to22.csv") %>%
+  data.frame() 
+
+input_reception_state_schools <- input_all_schools_data %>%
+  filter(age == 4) %>%
+  filter(type == "State-funded") %>%
+  filter(la_name == "Kent") %>%
+  mutate(period_start_num = as.numeric(period_start)) %>% 
+  data.frame()
+
+input_fourYearOlds_population_long_ed <- input_fourYearOlds_population_long %>%
+  mutate(Year_num = as.numeric(Year)) %>% 
+  group_by(cityORcounty_name, Year_num) %>%
+  summarize(Sum_number = sum(number)) %>%
+  filter(cityORcounty_name == "Kent") %>%
+  data.frame()
+
+combo_line <- ggplot() +
+  geom_line(data = input_reception_state_schools,  
+            aes(x = period_start_num, y = full_time, 
+                group = la_name, linetype = "Schools", 
+                text = paste("Type: Schools", 
+                             "<br>Year: ", period_start_num,
+                             "<br>Number of 4 year olds: ", round(full_time, digits = 2)) 
+  ), size = 1) + 
+    geom_line(data = input_fourYearOlds_population_long_ed, 
+              aes(x = Year_num, y = Sum_number, 
+                  group = cityORcounty_name, linetype="Population", 
+                text = paste("Type: Population",
+                             "<br>Year: ", Year_num,
+                             "<br>Number of 4 year olds: ", round(Sum_number, digits = 2)) 
+  ), size = 1) + 
+  theme_gla() +
+  theme(axis.text.x=element_text(color = "black", 
+                                 size=11, family = "Arial"),  #, angle=30, vjust=.8, hjust=0.8
+        axis.text.y=element_text(color = "black", size=11, family = "Arial")) +
+  scale_color_manual(name='Zone:', values = rev(catcolour2)) +
+#  scale_color_manual(name='Zone:', values=c('Inner'="#e41a1c","Outer" = "#377eb8")) +
+  scale_linetype_manual(name = "Data Type: ", values=c("Schools"= "solid", "Population"= "dashed")) +
+# scale_color_manual(name='Data Type:', values=c('Schools'="orange","Population" = "blue")) +
+  scale_x_continuous(limits = c(2009, 2026), breaks = seq(2009, 2026, by = 5)) +
+  theme(legend.title=element_text(size=14, family = "Arial"),
+        legend.text=element_text(size=11, family = "Arial"),
+        axis.text.x=element_text(color = "black", 
+                                 size=11, family = "Arial"),  #, angle=30, vjust=.8, hjust=0.8
+        axis.text.y=element_text(color = "black", size=11, family = "Arial")) +
+  labs(title= "Reception and Numbers of four year olds, Kent, 2009 - 2025", 
+     caption = paste0("Source: ONS, Chart: GLA demography"))
+ combo_line
+ 
+
+
+```
+
+```{r fig_schools and pop_line_Manchester, fig.height = 10, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+# Input data for headcounts of reception children and merge with city/county file
+
+input_all_schools_data <- fread("pupils_lad_type_age_2009to22.csv") %>%
+  full_join(cityORcounty_codes, by=c("new_la_code"= "la_code"), keep = TRUE)%>% 
+  mutate(across(c(cityORcounty_code, cityORcounty_name), factor)) %>%
+ data.frame() 
+
+input_reception_state_schools <- input_all_schools_data %>%
+  filter(age == 4) %>%
+  filter(type == "State-funded") %>%
+  mutate(period_start_num = as.numeric(period_start)) %>% 
+  group_by(cityORcounty_name, period_start_num) %>%
+  summarize(Sum_full_time = sum(full_time)) %>% 
+  filter(cityORcounty_name == "Greater Manchester") %>%
+  data.frame()
+
+input_fourYearOlds_population_long_ed <- input_fourYearOlds_population_long %>%
+  mutate(Year_num = as.numeric(Year)) %>% 
+  group_by(cityORcounty_name, Year_num) %>%
+  summarize(Sum_number = sum(number)) %>%
+  filter(cityORcounty_name == "Greater Manchester") %>%
+  data.frame()
+
+# Combine Population and Schools data
+merged_data = full_join(input_fourYearOlds_population_long_ed,  input_reception_state_schools,
+                                  by=c("Year_num" = "period_start_num", "cityORcounty_name" = "cityORcounty_name")) %>%
+   data.frame()
+
+combo_line <- merged_data %>%
+  ggplot() +
+  geom_line(aes(x = Year_num, y = Sum_full_time, group = cityORcounty_name, linetype = "Schools", 
+                text = paste("Type: Schools", 
+                             "<br>Year: ", Year_num,
+                             "<br>Number of 4 year olds: ", round(Sum_full_time, digits = 2)) 
+  ), size = 1) + 
+    geom_line(aes(x = Year_num, y = Sum_number, group = cityORcounty_name, linetype="Population", 
+                text = paste("Type: Population",
+                             "<br>Year: ", Year_num,
+                             "<br>Number of 4 year olds: ", round(Sum_number, digits = 2)) 
+  ), size = 1) + 
+  theme_gla() +
+  theme(axis.text.x=element_text(color = "black", 
+                                 size=11, family = "Arial"),  #, angle=30, vjust=.8, hjust=0.8
+        axis.text.y=element_text(color = "black", size=11, family = "Arial")) +
+  scale_color_manual(name='Zone:', values = rev(catcolour2)) +
+#  scale_color_manual(name='Zone:', values=c('Inner'="#e41a1c","Outer" = "#377eb8")) +
+  scale_linetype_manual(name = "Data Type: ", values=c("Schools"= "solid", "Population"= "dashed")) +
+# scale_color_manual(name='Data Type:', values=c('Schools'="orange","Population" = "blue")) +
+  scale_x_continuous(limits = c(2009, 2026), breaks = seq(2009, 2026, by = 5)) +
+  theme(legend.title=element_text(size=14, family = "Arial"),
+        legend.text=element_text(size=11, family = "Arial"),
+        axis.text.x=element_text(color = "black", 
+                                 size=11, family = "Arial"),  #, angle=30, vjust=.8, hjust=0.8
+        axis.text.y=element_text(color = "black", size=11, family = "Arial")) +
+  labs(title= "Reception and Numbers of four year olds, Greater Manchester, 2009 - 2025", 
+     caption = paste0("Source: ONS, Chart: GLA demography")) 
+ combo_line
+
+
+
+```

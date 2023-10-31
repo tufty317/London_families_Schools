@@ -1,0 +1,468 @@
+---
+title: "Schools analysis - Reception age mapping - 19th Sep 2023"
+output: 
+  html_document:
+    css: Wil_style.css
+    theme: default
+    toc: TRUE
+    toc_float: TRUE
+    number_sections: TRUE
+always_allow_html: yes
+---
+
+```{r setup1, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+library(zoo)
+library(data.table)
+library(tidyverse)
+library(gglaplot)
+library(ggplot2)
+library(scales)
+library(readxl)
+library(knitr)
+library(sf)
+library(sp)
+library(kableExtra)
+library(magick)
+
+library(plotly)    
+library(RColorBrewer)
+library(htmltools)
+library(prettydoc)
+library(rmdformats)
+
+
+library(flexdashboard)
+library(bslib)
+library(leaflet)
+library(DT)
+library(crosstalk) 
+library(dplyr)
+library(gglaplot)
+library(ggplot2)
+library(data.table)
+library(tidyr)
+library(stringr)
+library(tidyverse)
+library(plotly)
+library(sf)
+library(htmlwidgets)
+library(knitr)
+library(leaflet.extras)
+library(leaflegend)
+library(leaflet.providers)
+library(lubridate)
+library(maps)
+library(scales)
+library(forcats)
+
+
+chart_dir <- 'C:/Families/Charts/'
+
+# data_dir <- 'C:/Migration/Migration_R/DATA/Domestic/copied_from_Qdrive_20220614/'
+
+# Disable scientific notation
+options(scipen=999)
+
+```
+
+
+```{r setup2, include=FALSE}
+
+
+# SCHOOLS DATA For children 
+
+# Input data for headcounts of Reception school children
+
+Reception_schools_change <- fread("All_Reception_State_primary_pupils_201516 to 202223_ed.csv") %>%
+  group_by(new_la_code) %>% 
+  mutate(indexed_headcount = (headcount/first(headcount))*100) %>%
+  filter(time_period == 202223) %>%
+  filter(new_la_code != "E06000053") %>%
+  arrange(new_la_code) %>%
+  data.frame()   
+
+
+#-----------------------------------------------------------------------
+
+# Import LA boundaries for England 
+borough_boundaries <-
+  st_read("C:/Families/Geography/YiranData/Local_Education_Authority/local_education_authorities.shp", quiet = TRUE)
+
+glimpse(borough_boundaries)
+
+#Check the shapefile has loaded correctly by plotting an outline map of the UK
+
+gg <- ggplot(data = borough_boundaries) + geom_sf(aes(geometry=geometry))
+gg
+
+
+```
+
+
+
+
+```{r fig_London_Reception_schools_map_1, fig.height = 5.56, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+# Create data for plotting toottips at centroids
+
+sf_cent <- st_centroid(borough_boundaries)
+
+centres<- as.data.frame(st_coordinates(sf_cent))
+
+sf_cent_plus <- cbind(sf_cent, st_coordinates(sf_cent))
+
+borough_boundaries_plus <- cbind(borough_boundaries, sf_cent_plus)
+
+#summary(Reception_schools_change$indexed_headcount)
+
+Reception_schools_geog <- Reception_schools_change %>% 
+    left_join(borough_boundaries_plus, by=c('new_la_code' = 'new_la_cod')) %>%
+    mutate(indexed_hc_Cat5 = cut(indexed_headcount, breaks = c(60, 85, 90, 97, 103, 110),
+                      right=FALSE,
+                      labels = c(" 60 - 84.9",
+                                 " 85 - 89.9",
+                                 " 90 - 96.9",
+                                 " 97 - 102.9",
+                                 "103 - 110"))) %>%
+  data.frame()
+
+# Colours for categories
+catdiv5B = rev(c('#00429d', '#5681b9', '#93c4d2', '#ffffe0', '#ffa59e', '#dd4c65', '#93003a'))
+names(catdiv5B) <- levels(Reception_schools_geog$indexed_hc_Cat5)
+
+catdiv5 = c('#ca0020','#f4a582','#f7f7f7','#92c5de','#0571b0')
+
+
+Reception_schools_change_map <- Reception_schools_geog %>%
+  ggplot() +
+geom_point(aes(x=X, y=Y, text = paste("Education Authority: ", la_name.x,
+                          "<br>Reception school headcount in 2022-3: ", 
+                         formatC(headcount, format="f", big.mark=",", digits=0),
+                          "<br>Headcount in 2022-3 as % of 2015-6: ", 
+                          formatC(indexed_headcount, format="f", big.mark=",", digits=0))), alpha = 0) +  
+  geom_sf(aes(geometry=geometry, fill=indexed_hc_Cat5),  lwd = 0.1)+
+  theme(legend.position = "right")+
+  theme(plot.title = element_text(size = 16, hjust = 0.5)) +
+  theme(legend.position = "right") +
+  #theme(legend.title = element_blank()) +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank()) +
+  theme(panel.background = element_blank()) +
+  theme(plot.caption = element_text (hjust = 0)) +
+  theme(plot.title = element_text(size = 16, hjust = 0.5)) +
+  theme(plot.subtitle = element_text(size = 12, hjust= 0.5)) +
+  theme(plot.caption = element_text(size = 10, hjust= 0)) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_blank(), 
+        axis.text.y = element_blank(), 
+        axis.ticks.x = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  scale_fill_manual("2022-23 headcount\nindexed\nto 2015-16", values = catdiv5B)+ 
+  labs(title = "Change in Reception school headcount in England", 
+       subtitle = "between academic years 2015-16 and 2022-23",
+       caption = "Source: DFE, Chart: GLA demography")
+
+ggsave (filename = (paste0(chart_dir, "Reception_schools_change_map.png")),
+         plot = Reception_schools_change_map,
+         device = "png",
+         dpi=600,
+         width = 9,
+         height = 5.56,
+         units = "in")
+
+# Interactive map using ggplotly
+Reception_schools_change_int <- ggplotly(Reception_schools_change_map, tooltip = "text") %>%
+    layout(title= list(x = 0.05,
+         text = "<b>Change in Reception school headcount between 2015-6 and 2022-3<b>", 
+         font=list(size = 15, family = "Arial")),
+         font=list(size = 14, family = "Arial", color = "black", fontface = "bold"),
+         legend = list(title = list(text = "Headcount\n% of 2015-6 value"))) %>% 
+  #add_annotations(text="", showarrow=FALSE, legendtitle=FALSE) %>%
+  layout(annotations = list(x = 0.05, y = -0.05, text = "Source: DFE, Chart: GLA demography", 
+                           showarrow = F, xref='paper', yref='paper', 
+                            font=list(size=14)) ) %>%
+ layout(margin = list(l = 100,r = 100,  b =0,  t = 100,  pad = 4))
+
+Reception_schools_change_int
+
+
+
+
+
+```
+
+
+
+```{r fig_London_Reception_schools_map_2, fig.height = 5.56, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+# Create data for plotting toottips at centroids
+
+sf_cent <- st_centroid(borough_boundaries)
+
+centres<- as.data.frame(st_coordinates(sf_cent))
+
+sf_cent_plus <- cbind(sf_cent, st_coordinates(sf_cent))
+
+borough_boundaries_plus <- cbind(borough_boundaries, sf_cent_plus)
+
+#summary(Reception_schools_change$indexed_headcount)
+
+London_reception_schools_geog <- Reception_schools_change %>% 
+    filter(grepl('E09000', new_la_code)) %>%
+    left_join(borough_boundaries_plus, by=c('new_la_code' = 'new_la_cod')) %>%
+    mutate(indexed_hc_Cat5 = cut(indexed_headcount, breaks = c(60, 85, 90, 97, 103, 110),
+                      right=FALSE,
+                      labels = c(" 60 - 84.9",
+                                 " 85 - 89.9",
+                                 " 90 - 96.9",
+                                 " 97 - 102.9",
+                                 "103 - 110"))) %>%
+  data.frame()
+
+# Colours for categories
+catdiv5 = c('#ca0020','#f4a582','#f7f7f7','#92c5de','#0571b0')
+names(catdiv5) <- levels(Reception_schools_geog$indexed_hc_Cat5)
+
+London_reception_schools_change_map <- London_reception_schools_geog %>%
+  ggplot() +
+geom_point(aes(x=X, y=Y, text = paste("Education Authority: ", la_name.x,
+                          "<br>Reception school headcount in 2022-3: ", 
+                         formatC(headcount, format="f", big.mark=",", digits=0),
+                          "<br>Headcount in 2022-3 as % of 2015-6: ", 
+                          formatC(indexed_headcount, format="f", big.mark=",", digits=0))), alpha = 0) +  
+  geom_sf(aes(geometry=geometry, fill=indexed_hc_Cat5),  lwd = 0.1)+
+  theme(legend.position = "right")+
+  theme(plot.title = element_text(size = 16, hjust = 0.5)) +
+  theme(legend.position = "right") +
+  #theme(legend.title = element_blank()) +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank()) +
+  theme(panel.background = element_blank()) +
+  theme(plot.caption = element_text (hjust = 0)) +
+  theme(plot.title = element_text(size = 16, hjust = 0.5)) +
+  theme(plot.subtitle = element_text(size = 12, hjust= 0.5)) +
+  theme(plot.caption = element_text(size = 10, hjust= 0)) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_blank(), 
+        axis.text.y = element_blank(), 
+        axis.ticks.x = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  scale_fill_manual("2022-23 headcount\nindexed\nto 2015-16", values = catdiv5B)+ 
+  labs(title = "Change in Reception school headcount in England", 
+       subtitle = "between academic years 2015-16 and 2022-23",
+       caption = "Source: DFE, Chart: GLA demography")
+
+ggsave (filename = (paste0(chart_dir, "London_Reception_schools_change_map.png")),
+         plot = London_reception_schools_change_map,
+         device = "png",
+         dpi=600,
+         width = 9,
+         height = 5.56,
+         units = "in")
+
+
+# Interactive map using ggplotly
+London_reception_schools_change_int <- ggplotly(London_reception_schools_change_map, tooltip = "text") %>%
+    layout(title= list(x = 0.05,
+         text = "<b>Change in Reception school headcount between 2015-6 and 2022-3<b>", 
+         font=list(size = 15, family = "Arial")),
+         font=list(size = 14, family = "Arial", color = "black", fontface = "bold"),
+         legend = list(title = list(text = "Headcount\n% of 2015-6 value"))) %>% 
+  #add_annotations(text="", showarrow=FALSE, legendtitle=FALSE) %>%
+  layout(annotations = list(x = 0.05, y = -0.05, text = "Source: DFE, Chart: GLA demography", 
+                           showarrow = F, xref='paper', yref='paper', 
+                            font=list(size=14)) ) %>%
+ layout(margin = list(l = 100,r = 100,  b =0,  t = 100,  pad = 4))
+
+London_reception_schools_change_int
+
+
+
+
+
+```
+
+
+```{r fig_London_Reception_schools_map_3, fig.height = 5.56, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+# Alternative map for London on 19th Sep
+
+borough_boundaries_2021 <-
+  st_read("C:/Migration/Migration_R/DATA/Domestic/copied_from_Qdrive_20220614/geographical/LAD_DEC_2021_GB_BUC.shp", quiet = TRUE)
+
+
+London_reception_schools_geog <- Reception_schools_change %>% 
+    filter(grepl('E09000', new_la_code)) %>%
+    left_join(borough_boundaries_2021, by=c('new_la_code' = 'LAD21CD')) %>%
+    mutate(indexed_hc_Cat5 = cut(indexed_headcount, breaks = c(60, 85, 90, 97, 103, 110),
+                      right=FALSE,
+                      labels = c(" 60 - 84.9",
+                                 " 85 - 89.9",
+                                 " 90 - 96.9",
+                                 " 97 - 102.9",
+                                 "103 - 110"))) %>%
+  data.frame()
+
+# Colours for categories
+catdiv5 = c('#ca0020','#f4a582','#f7f7f7','#92c5de','#0571b0')
+names(catdiv5) <- levels(Reception_schools_geog$indexed_hc_Cat5)
+
+London_reception_schools_change_map <- London_reception_schools_geog %>%
+  ggplot() +
+geom_point(aes(x=BNG_E, y=BNG_N,  text = paste("Education Authority: ", la_name,
+                          "<br>Reception school headcount in 2022-3: ", 
+                         formatC(headcount, format="f", big.mark=",", digits=0),
+                          "<br>Headcount in 2022-3 as % of 2015-6: ", 
+                          formatC(indexed_headcount, format="f", big.mark=",", digits=0))), alpha = 0) +  
+  geom_sf(aes(geometry=geometry, fill=indexed_hc_Cat5),  lwd = 0.1)+
+  theme(legend.position = "right")+
+  theme(plot.title = element_text(size = 16, hjust = 0.5)) +
+  theme(legend.position = "right") +
+  #theme(legend.title = element_blank()) +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank()) +
+  theme(panel.background = element_blank()) +
+  theme(plot.caption = element_text (hjust = 0)) +
+  theme(plot.title = element_text(size = 16, hjust = 0.5)) +
+  theme(plot.subtitle = element_text(size = 12, hjust= 0.5)) +
+  theme(plot.caption = element_text(size = 10, hjust= 0)) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_blank(), 
+        axis.text.y = element_blank(), 
+        axis.ticks.x = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  scale_fill_manual("2022-23 headcount\nindexed\nto 2015-16", values = catdiv5B)+ 
+  labs(title = "Change in Reception school headcount in London", 
+       subtitle = "between academic years 2015-16 and 2022-23",
+       caption = "Source: DFE, Chart: GLA demography")
+
+ggsave (filename = (paste0(chart_dir, "London_Reception_schools_change_map.png")),
+         plot = London_reception_schools_change_map,
+         device = "png",
+         dpi=600,
+         width = 9,
+         height = 5.56,
+         units = "in")
+
+
+# Interactive map using ggplotly
+London_reception_schools_change_int <- ggplotly(London_reception_schools_change_map, tooltip = "text") %>%
+    layout(title= list(x = 0.05,
+         text = "<b>Change in Reception school headcount between 2015-6 and 2022-3<b>", 
+         font=list(size = 15, family = "Arial")),
+         font=list(size = 14, family = "Arial", color = "black", fontface = "bold"),
+         legend = list(title = list(text = "Headcount\n% of 2015-6 value"))) %>% 
+  #add_annotations(text="", showarrow=FALSE, legendtitle=FALSE) %>%
+  layout(annotations = list(x = 0.05, y = -0.05, text = "Source: DFE, Chart: GLA demography", 
+                           showarrow = F, xref='paper', yref='paper', 
+                            font=list(size=14)) ) %>%
+ layout(margin = list(l = 100,r = 100,  b =0,  t = 100,  pad = 4))
+
+London_reception_schools_change_int
+
+
+```
+
+```{r fig_London_Reception_schools_map_4, fig.height = 5.56, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+quantile(New_Reception_schools_change$indexed_headcount)
+
+# Colours for categories
+catdiv5B = rev(c('#00429d', '#5681b9', '#93c4d2', '#ffffe0', '#ffa59e', '#dd4c65', '#93003a'))
+
+# Alternative map starting at 2016-7 on 18th Oct
+
+borough_boundaries_2021 <-
+  st_read("C:/Migration/Migration_R/DATA/Domestic/copied_from_Qdrive_20220614/geographical/LAD_DEC_2021_GB_BUC.shp", quiet = TRUE)
+
+New_Reception_schools_change <- fread("All_Reception_State_primary_pupils_201516 to 202223_ed.csv") %>%
+  filter(time_period != 201516) %>%
+  group_by(new_la_code) %>% 
+  mutate(indexed_headcount = (headcount/first(headcount))*100) %>%
+  filter(time_period == 202223) %>%
+  filter(new_la_code != "E06000053") %>%
+  arrange(new_la_code) %>%
+  data.frame()   
+
+
+
+
+London_reception_schools_geog <- New_Reception_schools_change %>% 
+    filter(grepl('E09000', new_la_code)) %>%
+    left_join(borough_boundaries_2021, by=c('new_la_code' = 'LAD21CD')) %>%
+    mutate(indexed_hc_Cat5 = cut(indexed_headcount, breaks = c(50, 87, 90, 96, 103, 110),
+                      right=FALSE,
+                      labels = c(" 50 - 86.9",
+                                 " 87 - 89.9",
+                                 " 90 - 95.9",
+                                 " 96 - 102.9",
+                                 "103 - 110"))) %>%
+  data.frame()
+
+# Colours for categories
+catdiv5 = c('#ca0020','#f4a582','#f7f7f7','#92c5de','#0571b0')
+names(catdiv5) <- levels(Reception_schools_geog$indexed_hc_Cat5)
+
+London_reception_schools_change_map <- London_reception_schools_geog %>%
+  ggplot() +
+geom_point(aes(x=BNG_E, y=BNG_N,  text = paste("Education Authority: ", la_name,
+                          "<br>Reception school headcount in 2022-3: ", 
+                         formatC(headcount, format="f", big.mark=",", digits=0),
+                          "<br>Headcount in 2022-3 as % of 2016-7: ", 
+                          formatC(indexed_headcount, format="f", big.mark=",", digits=0))), alpha = 0) +  
+  geom_sf(aes(geometry=geometry, fill=indexed_hc_Cat5),  lwd = 0.1)+
+  theme(legend.position = "right")+
+  theme(plot.title = element_text(size = 16, hjust = 0.5)) +
+  theme(legend.position = "right") +
+  #theme(legend.title = element_blank()) +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank()) +
+  theme(panel.background = element_blank()) +
+  theme(plot.caption = element_text (hjust = 0)) +
+  theme(plot.title = element_text(size = 16, hjust = 0.5)) +
+  theme(plot.subtitle = element_text(size = 12, hjust= 0.5)) +
+  theme(plot.caption = element_text(size = 10, hjust= 0)) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_blank(), 
+        axis.text.y = element_blank(), 
+        axis.ticks.x = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  scale_fill_manual("2022-23 headcount\nindexed\nto 2015-16", values = catdiv5B)+ 
+  labs(title = "Change in Reception school headcount in London", 
+       subtitle = "between academic years 2016-17 and 2022-23",
+       caption = "Source: DFE, Chart: GLA demography")
+
+ggsave (filename = (paste0(chart_dir, "London_Reception_schools_change_map.png")),
+         plot = London_reception_schools_change_map,
+         device = "png",
+         dpi=600,
+         width = 9,
+         height = 5.56,
+         units = "in")
+
+
+# Interactive map using ggplotly
+London_reception_schools_change_int <- ggplotly(London_reception_schools_change_map, tooltip = "text") %>%
+    layout(title= list(x = 0.05,
+         text = "<b>Change in Reception school headcount between 2016-7 and 2022-3<b>", 
+         font=list(size = 15, family = "Arial")),
+         font=list(size = 14, family = "Arial", color = "black", fontface = "bold"),
+         legend = list(title = list(text = "Headcount\n% of 2016-7 value"))) %>% 
+  #add_annotations(text="", showarrow=FALSE, legendtitle=FALSE) %>%
+  layout(annotations = list(x = 0.05, y = -0.05, text = "Source: DFE, Chart: GLA demography", 
+                           showarrow = F, xref='paper', yref='paper', 
+                            font=list(size=14)) ) %>%
+ layout(margin = list(l = 100,r = 100,  b =0,  t = 100,  pad = 4))
+
+London_reception_schools_change_int
+
+
+```
+

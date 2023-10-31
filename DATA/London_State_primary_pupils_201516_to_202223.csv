@@ -1,0 +1,265 @@
+time_period,period2,time_identifier,la_name,new_la_code,headcount
+201516,2015-16,Academic year,City of London,E09000001,250
+201516,2015-16,Academic year,Camden,E09000007,12125
+201516,2015-16,Academic year,Greenwich,E09000011,26587
+201516,2015-16,Academic year,Hackney,E09000012,20801
+201516,2015-16,Academic year,Hammersmith and Fulham,E09000013,10650
+201516,2015-16,Academic year,Islington,E09000019,15266
+201516,2015-16,Academic year,Kensington and Chelsea,E09000020,7322
+201516,2015-16,Academic year,Lambeth,E09000022,22816
+201516,2015-16,Academic year,Lewisham,E09000023,25735
+201516,2015-16,Academic year,Southwark,E09000028,25342
+201516,2015-16,Academic year,Tower Hamlets,E09000030,25953
+201516,2015-16,Academic year,Wandsworth,E09000032,20479
+201516,2015-16,Academic year,Westminster,E09000033,11202
+201516,2015-16,Academic year,Barking and Dagenham,E09000002,26973
+201516,2015-16,Academic year,Barnet,E09000003,31359
+201516,2015-16,Academic year,Bexley,E09000004,22724
+201516,2015-16,Academic year,Brent,E09000005,27867
+201516,2015-16,Academic year,Bromley,E09000006,26861
+201516,2015-16,Academic year,Croydon,E09000008,33932
+201516,2015-16,Academic year,Ealing,E09000009,33493
+201516,2015-16,Academic year,Enfield,E09000010,34024
+201516,2015-16,Academic year,Haringey,E09000014,23746
+201516,2015-16,Academic year,Harrow,E09000015,21259
+201516,2015-16,Academic year,Havering,E09000016,22008
+201516,2015-16,Academic year,Hillingdon,E09000017,30329
+201516,2015-16,Academic year,Hounslow,E09000018,24334
+201516,2015-16,Academic year,Kingston upon Thames,E09000021,14437
+201516,2015-16,Academic year,Merton,E09000024,19626
+201516,2015-16,Academic year,Newham,E09000025,36426
+201516,2015-16,Academic year,Redbridge,E09000026,30039
+201516,2015-16,Academic year,Richmond upon Thames,E09000027,17142
+201516,2015-16,Academic year,Sutton,E09000029,17906
+201516,2015-16,Academic year,Waltham Forest,E09000031,25893
+201617,2016-17,Academic year,City of London,E09000001,276
+201617,2016-17,Academic year,Camden,E09000007,12109
+201617,2016-17,Academic year,Greenwich,E09000011,26570
+201617,2016-17,Academic year,Hackney,E09000012,20758
+201617,2016-17,Academic year,Hammersmith and Fulham,E09000013,10660
+201617,2016-17,Academic year,Islington,E09000019,15566
+201617,2016-17,Academic year,Kensington and Chelsea,E09000020,7348
+201617,2016-17,Academic year,Lambeth,E09000022,22253
+201617,2016-17,Academic year,Lewisham,E09000023,25608
+201617,2016-17,Academic year,Southwark,E09000028,25263
+201617,2016-17,Academic year,Tower Hamlets,E09000030,26073
+201617,2016-17,Academic year,Wandsworth,E09000032,20792
+201617,2016-17,Academic year,Westminster,E09000033,10958
+201617,2016-17,Academic year,Barking and Dagenham,E09000002,27058
+201617,2016-17,Academic year,Barnet,E09000003,31613
+201617,2016-17,Academic year,Bexley,E09000004,22950
+201617,2016-17,Academic year,Brent,E09000005,27877
+201617,2016-17,Academic year,Bromley,E09000006,27295
+201617,2016-17,Academic year,Croydon,E09000008,34149
+201617,2016-17,Academic year,Ealing,E09000009,33685
+201617,2016-17,Academic year,Enfield,E09000010,34191
+201617,2016-17,Academic year,Haringey,E09000014,23735
+201617,2016-17,Academic year,Harrow,E09000015,21614
+201617,2016-17,Academic year,Havering,E09000016,22471
+201617,2016-17,Academic year,Hillingdon,E09000017,30776
+201617,2016-17,Academic year,Hounslow,E09000018,25047
+201617,2016-17,Academic year,Kingston upon Thames,E09000021,14566
+201617,2016-17,Academic year,Merton,E09000024,19578
+201617,2016-17,Academic year,Newham,E09000025,36548
+201617,2016-17,Academic year,Redbridge,E09000026,30137
+201617,2016-17,Academic year,Richmond upon Thames,E09000027,17594
+201617,2016-17,Academic year,Sutton,E09000029,18403
+201617,2016-17,Academic year,Waltham Forest,E09000031,26063
+201718,2017-18,Academic year,City of London,E09000001,284
+201718,2017-18,Academic year,Camden,E09000007,11942
+201718,2017-18,Academic year,Greenwich,E09000011,26668
+201718,2017-18,Academic year,Hackney,E09000012,20584
+201718,2017-18,Academic year,Hammersmith and Fulham,E09000013,10531
+201718,2017-18,Academic year,Islington,E09000019,15403
+201718,2017-18,Academic year,Kensington and Chelsea,E09000020,7385
+201718,2017-18,Academic year,Lambeth,E09000022,22084
+201718,2017-18,Academic year,Lewisham,E09000023,25346
+201718,2017-18,Academic year,Southwark,E09000028,25220
+201718,2017-18,Academic year,Tower Hamlets,E09000030,25986
+201718,2017-18,Academic year,Wandsworth,E09000032,20832
+201718,2017-18,Academic year,Westminster,E09000033,10599
+201718,2017-18,Academic year,Barking and Dagenham,E09000002,26793
+201718,2017-18,Academic year,Barnet,E09000003,31755
+201718,2017-18,Academic year,Bexley,E09000004,22934
+201718,2017-18,Academic year,Brent,E09000005,27640
+201718,2017-18,Academic year,Bromley,E09000006,27755
+201718,2017-18,Academic year,Croydon,E09000008,34010
+201718,2017-18,Academic year,Ealing,E09000009,33384
+201718,2017-18,Academic year,Enfield,E09000010,33813
+201718,2017-18,Academic year,Haringey,E09000014,23685
+201718,2017-18,Academic year,Harrow,E09000015,21956
+201718,2017-18,Academic year,Havering,E09000016,22990
+201718,2017-18,Academic year,Hillingdon,E09000017,30690
+201718,2017-18,Academic year,Hounslow,E09000018,25059
+201718,2017-18,Academic year,Kingston upon Thames,E09000021,14749
+201718,2017-18,Academic year,Merton,E09000024,19446
+201718,2017-18,Academic year,Newham,E09000025,36375
+201718,2017-18,Academic year,Redbridge,E09000026,29975
+201718,2017-18,Academic year,Richmond upon Thames,E09000027,17705
+201718,2017-18,Academic year,Sutton,E09000029,18876
+201718,2017-18,Academic year,Waltham Forest,E09000031,26063
+201819,2018-19,Academic year,City of London,E09000001,285
+201819,2018-19,Academic year,Camden,E09000007,11728
+201819,2018-19,Academic year,Greenwich,E09000011,26587
+201819,2018-19,Academic year,Hackney,E09000012,20356
+201819,2018-19,Academic year,Hammersmith and Fulham,E09000013,10507
+201819,2018-19,Academic year,Islington,E09000019,15125
+201819,2018-19,Academic year,Kensington and Chelsea,E09000020,7305
+201819,2018-19,Academic year,Lambeth,E09000022,22363
+201819,2018-19,Academic year,Lewisham,E09000023,24968
+201819,2018-19,Academic year,Southwark,E09000028,24901
+201819,2018-19,Academic year,Tower Hamlets,E09000030,25930
+201819,2018-19,Academic year,Wandsworth,E09000032,20699
+201819,2018-19,Academic year,Westminster,E09000033,10185
+201819,2018-19,Academic year,Barking and Dagenham,E09000002,26187
+201819,2018-19,Academic year,Barnet,E09000003,31877
+201819,2018-19,Academic year,Bexley,E09000004,22831
+201819,2018-19,Academic year,Brent,E09000005,27479
+201819,2018-19,Academic year,Bromley,E09000006,27820
+201819,2018-19,Academic year,Croydon,E09000008,33716
+201819,2018-19,Academic year,Ealing,E09000009,33012
+201819,2018-19,Academic year,Enfield,E09000010,33221
+201819,2018-19,Academic year,Haringey,E09000014,23195
+201819,2018-19,Academic year,Harrow,E09000015,22226
+201819,2018-19,Academic year,Havering,E09000016,23206
+201819,2018-19,Academic year,Hillingdon,E09000017,30600
+201819,2018-19,Academic year,Hounslow,E09000018,25095
+201819,2018-19,Academic year,Kingston upon Thames,E09000021,14791
+201819,2018-19,Academic year,Merton,E09000024,19034
+201819,2018-19,Academic year,Newham,E09000025,36247
+201819,2018-19,Academic year,Redbridge,E09000026,30083
+201819,2018-19,Academic year,Richmond upon Thames,E09000027,17704
+201819,2018-19,Academic year,Sutton,E09000029,19072
+201819,2018-19,Academic year,Waltham Forest,E09000031,25757
+201920,2019-20,Academic year,City of London,E09000001,276
+201920,2019-20,Academic year,Camden,E09000007,11483
+201920,2019-20,Academic year,Greenwich,E09000011,26389
+201920,2019-20,Academic year,Hackney,E09000012,20080
+201920,2019-20,Academic year,Hammersmith and Fulham,E09000013,10279
+201920,2019-20,Academic year,Islington,E09000019,14957
+201920,2019-20,Academic year,Kensington and Chelsea,E09000020,7214
+201920,2019-20,Academic year,Lambeth,E09000022,21955
+201920,2019-20,Academic year,Lewisham,E09000023,25038
+201920,2019-20,Academic year,Southwark,E09000028,24320
+201920,2019-20,Academic year,Tower Hamlets,E09000030,25683
+201920,2019-20,Academic year,Wandsworth,E09000032,20426
+201920,2019-20,Academic year,Westminster,E09000033,9626
+201920,2019-20,Academic year,Barking and Dagenham,E09000002,25722
+201920,2019-20,Academic year,Barnet,E09000003,31456
+201920,2019-20,Academic year,Bexley,E09000004,23261
+201920,2019-20,Academic year,Brent,E09000005,27073
+201920,2019-20,Academic year,Bromley,E09000006,27958
+201920,2019-20,Academic year,Croydon,E09000008,33138
+201920,2019-20,Academic year,Ealing,E09000009,32443
+201920,2019-20,Academic year,Enfield,E09000010,32523
+201920,2019-20,Academic year,Haringey,E09000014,22741
+201920,2019-20,Academic year,Harrow,E09000015,22218
+201920,2019-20,Academic year,Havering,E09000016,23613
+201920,2019-20,Academic year,Hillingdon,E09000017,30406
+201920,2019-20,Academic year,Hounslow,E09000018,24767
+201920,2019-20,Academic year,Kingston upon Thames,E09000021,14647
+201920,2019-20,Academic year,Merton,E09000024,18502
+201920,2019-20,Academic year,Newham,E09000025,35740
+201920,2019-20,Academic year,Redbridge,E09000026,29818
+201920,2019-20,Academic year,Richmond upon Thames,E09000027,17606
+201920,2019-20,Academic year,Sutton,E09000029,19192
+201920,2019-20,Academic year,Waltham Forest,E09000031,25581
+202021,2020-21,Academic year,City of London,E09000001,270
+202021,2020-21,Academic year,Camden,E09000007,11128
+202021,2020-21,Academic year,Greenwich,E09000011,25839
+202021,2020-21,Academic year,Hackney,E09000012,19432
+202021,2020-21,Academic year,Hammersmith and Fulham,E09000013,9928
+202021,2020-21,Academic year,Islington,E09000019,14473
+202021,2020-21,Academic year,Kensington and Chelsea,E09000020,6983
+202021,2020-21,Academic year,Lambeth,E09000022,21107
+202021,2020-21,Academic year,Lewisham,E09000023,24114
+202021,2020-21,Academic year,Southwark,E09000028,23370
+202021,2020-21,Academic year,Tower Hamlets,E09000030,25463
+202021,2020-21,Academic year,Wandsworth,E09000032,19820
+202021,2020-21,Academic year,Westminster,E09000033,9096
+202021,2020-21,Academic year,Barking and Dagenham,E09000002,24999
+202021,2020-21,Academic year,Barnet,E09000003,30826
+202021,2020-21,Academic year,Bexley,E09000004,22935
+202021,2020-21,Academic year,Brent,E09000005,26364
+202021,2020-21,Academic year,Bromley,E09000006,27999
+202021,2020-21,Academic year,Croydon,E09000008,32480
+202021,2020-21,Academic year,Ealing,E09000009,31327
+202021,2020-21,Academic year,Enfield,E09000010,31307
+202021,2020-21,Academic year,Haringey,E09000014,21710
+202021,2020-21,Academic year,Harrow,E09000015,21896
+202021,2020-21,Academic year,Havering,E09000016,23772
+202021,2020-21,Academic year,Hillingdon,E09000017,29589
+202021,2020-21,Academic year,Hounslow,E09000018,24069
+202021,2020-21,Academic year,Kingston upon Thames,E09000021,14211
+202021,2020-21,Academic year,Merton,E09000024,17791
+202021,2020-21,Academic year,Newham,E09000025,34818
+202021,2020-21,Academic year,Redbridge,E09000026,29441
+202021,2020-21,Academic year,Richmond upon Thames,E09000027,17312
+202021,2020-21,Academic year,Sutton,E09000029,19014
+202021,2020-21,Academic year,Waltham Forest,E09000031,25061
+202122,2021-22,Academic year,City of London,E09000001,277
+202122,2021-22,Academic year,Camden,E09000007,11071
+202122,2021-22,Academic year,Greenwich,E09000011,25494
+202122,2021-22,Academic year,Hackney,E09000012,18971
+202122,2021-22,Academic year,Hammersmith and Fulham,E09000013,9630
+202122,2021-22,Academic year,Islington,E09000019,14098
+202122,2021-22,Academic year,Kensington and Chelsea,E09000020,7005
+202122,2021-22,Academic year,Lambeth,E09000022,20305
+202122,2021-22,Academic year,Lewisham,E09000023,23362
+202122,2021-22,Academic year,Southwark,E09000028,22689
+202122,2021-22,Academic year,Tower Hamlets,E09000030,25678
+202122,2021-22,Academic year,Wandsworth,E09000032,19280
+202122,2021-22,Academic year,Westminster,E09000033,8881
+202122,2021-22,Academic year,Barking and Dagenham,E09000002,24594
+202122,2021-22,Academic year,Barnet,E09000003,30848
+202122,2021-22,Academic year,Bexley,E09000004,22662
+202122,2021-22,Academic year,Brent,E09000005,26240
+202122,2021-22,Academic year,Bromley,E09000006,27907
+202122,2021-22,Academic year,Croydon,E09000008,32186
+202122,2021-22,Academic year,Ealing,E09000009,30602
+202122,2021-22,Academic year,Enfield,E09000010,30679
+202122,2021-22,Academic year,Haringey,E09000014,21098
+202122,2021-22,Academic year,Harrow,E09000015,21791
+202122,2021-22,Academic year,Havering,E09000016,24414
+202122,2021-22,Academic year,Hillingdon,E09000017,29331
+202122,2021-22,Academic year,Hounslow,E09000018,23834
+202122,2021-22,Academic year,Kingston upon Thames,E09000021,14179
+202122,2021-22,Academic year,Merton,E09000024,17231
+202122,2021-22,Academic year,Newham,E09000025,34483
+202122,2021-22,Academic year,Redbridge,E09000026,28960
+202122,2021-22,Academic year,Richmond upon Thames,E09000027,16900
+202122,2021-22,Academic year,Sutton,E09000029,19030
+202122,2021-22,Academic year,Waltham Forest,E09000031,24919
+202223,2022-23,Academic year,City of London,E09000001,271
+202223,2022-23,Academic year,Camden,E09000007,10662
+202223,2022-23,Academic year,Greenwich,E09000011,25384
+202223,2022-23,Academic year,Hackney,E09000012,18401
+202223,2022-23,Academic year,Hammersmith and Fulham,E09000013,9319
+202223,2022-23,Academic year,Islington,E09000019,13645
+202223,2022-23,Academic year,Kensington and Chelsea,E09000020,6823
+202223,2022-23,Academic year,Lambeth,E09000022,19624
+202223,2022-23,Academic year,Lewisham,E09000023,22845
+202223,2022-23,Academic year,Southwark,E09000028,21935
+202223,2022-23,Academic year,Tower Hamlets,E09000030,25244
+202223,2022-23,Academic year,Wandsworth,E09000032,18845
+202223,2022-23,Academic year,Westminster,E09000033,8350
+202223,2022-23,Academic year,Barking and Dagenham,E09000002,24539
+202223,2022-23,Academic year,Barnet,E09000003,30711
+202223,2022-23,Academic year,Bexley,E09000004,22487
+202223,2022-23,Academic year,Brent,E09000005,26222
+202223,2022-23,Academic year,Bromley,E09000006,27801
+202223,2022-23,Academic year,Croydon,E09000008,32166
+202223,2022-23,Academic year,Ealing,E09000009,30405
+202223,2022-23,Academic year,Enfield,E09000010,30171
+202223,2022-23,Academic year,Haringey,E09000014,20895
+202223,2022-23,Academic year,Harrow,E09000015,21965
+202223,2022-23,Academic year,Havering,E09000016,24885
+202223,2022-23,Academic year,Hillingdon,E09000017,29378
+202223,2022-23,Academic year,Hounslow,E09000018,23891
+202223,2022-23,Academic year,Kingston upon Thames,E09000021,14019
+202223,2022-23,Academic year,Merton,E09000024,16930
+202223,2022-23,Academic year,Newham,E09000025,34294
+202223,2022-23,Academic year,Redbridge,E09000026,28901
+202223,2022-23,Academic year,Richmond upon Thames,E09000027,16697
+202223,2022-23,Academic year,Sutton,E09000029,19124
+202223,2022-23,Academic year,Waltham Forest,E09000031,24727
