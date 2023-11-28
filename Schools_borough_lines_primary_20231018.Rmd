@@ -1,5 +1,5 @@
 ---
-title: "Schools analysis - All primary - 18th July 2023"
+title: "Schools analysis - Primary and Secondary - 28th November 2023"
 output: 
   html_document:
     css: Wil_style.css
@@ -33,9 +33,9 @@ library(htmltools)
 library(prettydoc)
 library(rmdformats)
 
-# data_dir <- 'C:/Migration/Migration_R/DATA/Domestic/copied_from_Qdrive_20220614/'
-
 chart_dir <- 'C:/Families/Charts/'
+
+data_dir <- 'DATA/'
 
 # Disable scientific notation
 options(scipen=999)
@@ -45,35 +45,35 @@ options(scipen=999)
 
 ```{r setup2, include=FALSE}
 
+#boroughcodes <- read.csv("C:/Migration/Migration_R/DATA/Domestic/InnerLondon.csv") %>%   
+#  data.frame
 
-# SCHOOLS DATA For children 
-
-boroughcodes <- read.csv("C:/Migration/Migration_R/DATA/Domestic/InnerLondon.csv") %>%   
+boroughcodes <- fread(paste0(data_dir,"InnerLondon.csv")) %>%   
   data.frame
 
-glimpse(boroughcodes)
 
-# Input data for headcounts of primary school children and merge with Inner/Outer file
+## SCHOOLS DATA For children 
 
-# Create dataframe for those moving into borough from another London borough
+# Input data for headcounts of primary school children since 2015 and merge with Inner/Outer file.
 
-input_primary_schools <- fread("London_State_primary_pupils_201516_to_202223.csv") %>%
+# These are data from the DFE website.
+
+input_London_primary_schools <- fread(paste0(data_dir,"London_State_primary_pupils_201516_to_202223.csv")) %>%
   left_join(boroughcodes, by=c("new_la_code"="BoroughCode"))%>% 
   mutate(across(c(Inner, la_name), factor)) %>%
   mutate(Inner_factor= recode(Inner, "1"="Inner", "0"="Outer")) %>%
    data.frame() 
-
 
 ```
 
 
 ```{r fig_London_prim_schools_line_1, fig.height = 5, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
 
-# Plot primary schools numbers over time, not adjusted for population
+# Plot primary schools numbers over time by borough, not adjusted for population
 
 catcolour2 = rev(c('#e41a1c','#377eb8'))
 
-schools_lines <- input_primary_schools %>%
+London_schools_lines <- input_London_primary_schools %>%
   filter(BoroughName != "City of London") %>%
   ggplot(aes(x = period2, y = headcount, group = BoroughName, color = Inner_factor
              , text = paste("Year  :", period2,
@@ -86,7 +86,7 @@ schools_lines <- input_primary_schools %>%
   labs(title= "Primary schools headcount, London, 2015 - 2022", 
        caption = paste0("Source: ONS, Chart: GLA demography"))
 
-ggplotly(schools_lines, tooltip = "text") %>%
+ggplotly(London_schools_lines, tooltip = "text") %>%
   style(hoverlabel = list(bgcolor = "white")) %>%
   layout(title= list(x = 0.05,
                      text = "<b>Primary schools headcount, London, 2015 - 2022<b>", 
@@ -99,9 +99,9 @@ ggplotly(schools_lines, tooltip = "text") %>%
 
 ```{r fig_London_prim_schools_line_2, fig.height = 5, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
 
-# Plot primary schools numbers over time, indexed to 201516 value
+# Plot London primary schools numbers over time, by borough, indexed to 201516 value
 
-schools_lines <- input_primary_schools %>%
+London_schools_lines_ind <- input_London_primary_schools %>%
   filter(BoroughName != "City of London") %>%
   group_by(BoroughName) %>% 
   mutate(indexed_headcount = (headcount/first(headcount))*100) %>% 
@@ -114,16 +114,14 @@ schools_lines <- input_primary_schools %>%
   geom_line() + 
   geom_hline(yintercept=100)+
  scale_color_manual(name='Zone:', values = catcolour2) +
-  labs(title= "Primary schools headcount, London, 2015 - 2022", 
+  labs(title= "Primary schools headcount, London, 2015 - 2022, indexed to 2015", 
        caption = paste0("Source: ONS, Chart: GLA demography"))
 
-ggplotly(schools_lines, tooltip = "text") %>%
+ggplotly(London_schools_lines_ind, tooltip = "text") %>%
   style(hoverlabel = list(bgcolor = "white")) %>%
   layout(title= list(x = 0.05,
                      text = "<b>Primary schools headcount, indexed to 2015<b>", 
                      font=list(size = 15, family = "Arial")))
-
-
 
 ```
 
@@ -132,13 +130,13 @@ ggplotly(schools_lines, tooltip = "text") %>%
 
 # Aggregate by zone of London, and plot again
 
-agg_input_primary_schools <- input_primary_schools %>%
+agg_input_london_primary_schools <- input_London_primary_schools %>%
   filter(BoroughName != "City of London") %>%
   group_by(period2, Inner_factor) %>% 
   summarise(agg_headcount = sum(headcount)) %>%
   data.frame()
 
-schools_agg_lines <- agg_input_primary_schools %>%
+London_schools_agg_lines <- agg_input_london_primary_schools %>%
    ggplot(aes(x = period2, y = agg_headcount/1000, group = Inner_factor, color = Inner_factor
              , text = paste("Year  :", period2,
                             "<br>Zone : ", Inner_factor,
@@ -147,13 +145,13 @@ schools_agg_lines <- agg_input_primary_schools %>%
   theme_gla() +
   geom_line() + 
  scale_color_manual(name='Zone:', values = catcolour2) +
-  labs(title= "Primary schools headcount, London, 2015 - 2022", 
+  labs(title= "Primary schools headcount by Zone, London, 2015 - 2022", 
        caption = paste0("Source: ONS, Chart: GLA demography"))
 
-ggplotly(schools_agg_lines, tooltip = "text") %>%
+ggplotly(London_schools_agg_lines, tooltip = "text") %>%
   style(hoverlabel = list(bgcolor = "white")) %>%
   layout(title= list(x = 0.05,
-                     text = "<b>Primary schools headcount, London, 2015 - 2022, London<b>", 
+                     text = "<b>Primary schools headcount by Zone, London, 2015 - 2022, London<b>", 
                      font=list(size = 15, family = "Arial")))
 
 
@@ -165,7 +163,7 @@ ggplotly(schools_agg_lines, tooltip = "text") %>%
 
 # Index aggregated values to 201516 value
 
-schools_agg_ind_lines <- agg_input_primary_schools %>%
+London_schools_agg_ind_lines <- agg_input_london_primary_schools %>%
    group_by(Inner_factor) %>% 
    mutate(indexed_headcount = (agg_headcount/first(agg_headcount))*100) %>% 
    ggplot(aes(x = period2, y = indexed_headcount, group = Inner_factor, color = Inner_factor
@@ -178,13 +176,13 @@ schools_agg_ind_lines <- agg_input_primary_schools %>%
   geom_hline(yintercept=100)+
   scale_y_continuous(breaks = seq(88, 102, 2)) + #, limits = c(88, 102)) +
  scale_color_manual(name='Zone:', values = catcolour2) +
-  labs(title= "Primary schools headcount, London, 2015 - 2022", 
+  labs(title= "Primary schools headcount by Zone, London, 2015 - 2022, indexed to 2015", 
        caption = paste0("Source: ONS, Chart: GLA demography"))
 
-ggplotly(schools_agg_ind_lines, tooltip = "text") %>%
+ggplotly(London_schools_agg_ind_lines, tooltip = "text") %>%
   style(hoverlabel = list(bgcolor = "white")) %>%
   layout(title= list(x = 0.05,
-                     text = "<b>Primary schools headcount, indexed to 2015, London<b>", 
+                     text = "<b>Primary schools headcount by Zone, indexed to 2015, London<b>", 
                      font=list(size = 15, family = "Arial")))
 
 
@@ -193,17 +191,19 @@ ggplotly(schools_agg_ind_lines, tooltip = "text") %>%
 
 ```{r setup3, include=FALSE}
 
-# SCHOOLS DATA For children going further back in time
+# SCHOOLS DATA For children in London, going further back in time.
 
-boroughcodes <- read.csv("C:/Migration/Migration_R/DATA/Domestic/InnerLondon.csv") %>%   
+# These are data that Ben provided.
+
+boroughcodes <- fread(paste0(data_dir,"InnerLondon.csv")) %>%   
   data.frame
 
-cityORcounty_codes <- read.csv("C:/Migration/Migration_R/DATA/Domestic/cityORcounty.csv") %>%   
+cityORcounty_codes <- fread(paste0(data_dir,"cityORcounty.csv")) %>%   
   data.frame
 
-# Input data for headcounts of reception children and merge with city/county file
+# Input data for headcounts of children and merge with city/county file
 
-input_all_schools_data <- fread("pupils_lad_type_age_2009to22.csv") %>%
+input_all_schools_data <- fread(paste0(data_dir,"pupils_lad_type_age_2009to22.csv")) %>%
   full_join(cityORcounty_codes, by=c("new_la_code"= "la_code"), keep = TRUE)%>% 
   mutate(across(c(cityORcounty_code, cityORcounty_name), factor)) %>%
  data.frame() 
@@ -217,9 +217,9 @@ input_all_schools_data <- fread("pupils_lad_type_age_2009to22.csv") %>%
 
 catcolour2 = rev(c('#e41a1c','#377eb8'))
 
-# Aggregate by zone of London
+# Aggregate by Zone of London
 
-agg_input_primary_schools <- input_all_schools_data %>%
+agg_input_london_primary_schools <- input_all_schools_data %>%
   filter(grepl('E09', new_la_code)) %>%
   filter(la_name.x != "City of London") %>%
   filter(age < 11) %>%
@@ -229,7 +229,7 @@ agg_input_primary_schools <- input_all_schools_data %>%
  # mutate(Year = as.character(year)) %>%
   data.frame()
 
-schools_agg_lines <- agg_input_primary_schools %>%
+London_schools_agg_lines <- agg_input_london_primary_schools %>%
    ggplot(aes(x = period_start, y = agg_full_time/1000, group = cityORcounty_name, color = cityORcounty_name,
              text = paste("Year  :", period_start,
                             "<br>Zone : ", cityORcounty_name,
@@ -240,11 +240,11 @@ schools_agg_lines <- agg_input_primary_schools %>%
   theme(legend.position = "right") +
   geom_line() + 
   scale_color_manual(name='Zone:', values = rev(catcolour2)) +
-  labs(title= "State-funded full-time primary school pupils, London, 2009 - 2022", 
+  labs(title= "State-funded full-time primary school pupils by Zone, London, 2009 - 2022", 
        caption = paste0("Source: ONS, Chart: GLA demography"))
-schools_agg_lines
+London_schools_agg_lines
 
-# ggplotly(schools_agg_lines, tooltip = "text") %>%
+# ggplotly(London_schools_agg_lines, tooltip = "text") %>%
 #   style(hoverlabel = list(bgcolor = "white")) %>%
 #   layout(title= list(x = 0.05,
 #                      text = "<b>State-funded full-time primary school pupils, London, 2009 - 2022<b>", 
@@ -259,13 +259,13 @@ schools_agg_lines
 
 # Index aggregated values to 2009 value
 
-schools_agg_ind2009_lines <- agg_input_primary_schools %>%
+London_schools_agg_ind2009_lines <- agg_input_london_primary_schools %>%
    group_by(cityORcounty_name) %>% 
    mutate(indexed_headcount = (agg_full_time/first(agg_full_time))*100) %>% 
    ggplot(aes(x = period_start, y = indexed_headcount, group = cityORcounty_name, color = cityORcounty_name
              , text = paste("Year  :", period_start,
                             "<br>Zone : ", cityORcounty_name,
-                            "<br>Head count as % of 2015 : ", round(indexed_headcount, digits = 0))
+                            "<br>Head count as % of 2009 : ", round(indexed_headcount, digits = 0))
   )) +
   theme_gla() +
   geom_line() + 
@@ -274,22 +274,22 @@ schools_agg_ind2009_lines <- agg_input_primary_schools %>%
   theme(legend.position = "right") +
  # scale_y_continuous(breaks = seq(88, 102, 2)) + #, limits = c(88, 102)) +
  scale_color_manual(name='Zone:', values = rev(catcolour2)) +
-  labs(title= "Primary schools headcount, London, 2009- 2022", 
+  labs(title= "State-funded full-time primary school pupils by Zone, London, 2009 - 2022, indexed to 2009", 
        caption = paste0("Source: ONS, Chart: GLA demography"))
-schools_agg_ind2009_lines
+#London_schools_agg_ind2009_lines
 
-ggsave (filename = (paste0(chart_dir, "schools_agg_ind2009_lines.png")),
-         plot = schools_agg_ind2009_lines,
+ggsave (filename = (paste0(chart_dir, "London_schools_agg_ind2009_lines.png")),
+         plot = London_schools_agg_ind2009_lines,
          device = "png",
          dpi=600,
          width = 9,
          units = "in")
 
 
-ggplotly(schools_agg_ind2009_lines, tooltip = "text") %>%
+ggplotly(London_schools_agg_ind2009_lines, tooltip = "text") %>%
   style(hoverlabel = list(bgcolor = "white")) %>%
   layout(title= list(x = 0.05,
-                     text = "<b>Primary schools headcount, indexed to 2009, London<b>", 
+                     text = "<b>State-funded full-time primary school pupils by Zone, London, 2009 - 2022, indexed to 2009<b>", 
                      font=list(size = 15, family = "Arial")))
 
 
@@ -302,19 +302,19 @@ ggplotly(schools_agg_ind2009_lines, tooltip = "text") %>%
 
 catcolour2 = rev(c('#e41a1c','#377eb8'))
 
-# Aggregate by individual borough
+# Plot by individual borough
 
-agg_input_primary_schools <- input_all_schools_data %>%
+agg_input_london_primary_schools_borough <- input_all_schools_data %>%
   filter(grepl('E09', new_la_code)) %>%
   filter(la_name.x != "City of London") %>%
   filter(age < 11) %>%
   filter(type == "State-funded") %>%
   group_by(period_start, la_name.x, cityORcounty_name) %>% 
   summarise(agg_full_time = sum(full_time)) %>%
- # mutate(Year = as.character(year)) %>%
+# mutate(Year = as.character(year)) %>%
   data.frame()
 
-schools_agg_lines <- agg_input_primary_schools %>%
+London_schools_agg_borough_lines <- agg_input_london_primary_schools_borough %>%
    ggplot(aes(x = period_start, y = agg_full_time/1000, group = la_name.x, color = cityORcounty_name,
              text = paste("Year  :", period_start,
                             "<br>Zone : ", la_name.x,
@@ -326,10 +326,10 @@ schools_agg_lines <- agg_input_primary_schools %>%
   labs(title= "State-funded full-time primary school pupils, London, 2009 - 2022", 
        caption = paste0("Source: ONS, Chart: GLA demography"))
 
-ggplotly(schools_agg_lines, tooltip = "text") %>%
+ggplotly(London_schools_agg_borough_lines, tooltip = "text") %>%
   style(hoverlabel = list(bgcolor = "white")) %>%
   layout(title= list(x = 0.05,
-                     text = "<b>State-funded full-time primary school pupils, London, 2009 - 2022<b>", 
+                     text = "<b>State-funded full-time primary school pupils, 2009 - 2022, London boroughs<b>", 
                      font=list(size = 15, family = "Arial")),        yaxis = list(title = list(text ='Full-time students (thousands)', 
                                    font = list(size = 15, family = "Arial", color = "black", 
                                                fontface = "bold")))) 
@@ -342,35 +342,428 @@ ggplotly(schools_agg_lines, tooltip = "text") %>%
 
 # Index aggregated values to 2009 value
 
-schools_agg_ind2009_borough_lines <- agg_input_primary_schools %>%
+London_schools_agg_ind2009_borough_lines <- agg_input_london_primary_schools_borough %>%
    group_by(la_name.x) %>% 
    mutate(indexed_headcount = (agg_full_time/first(agg_full_time))*100) %>% 
    ggplot(aes(x = period_start, y = indexed_headcount, group = la_name.x, color = cityORcounty_name
              , text = paste("Year  :", period_start,
                             "<br>Zone : ", la_name.x,
-                            "<br>Head count as % of 2015 : ", round(indexed_headcount, digits = 0))
+                            "<br>Head count as % of 2009 : ", round(indexed_headcount, digits = 0))
   )) +
   theme_gla() +
   geom_line() + 
   geom_hline(yintercept=100)+
  # scale_y_continuous(breaks = seq(88, 102, 2)) + #, limits = c(88, 102)) +
  scale_color_manual(name='Zone:', values = rev(catcolour2)) +
-  labs(title= "Primary schools headcount, London, 2009- 2022", 
+  labs(title= "Primary schools headcount, London, 2009- 2022, indexed to 2009 value", 
        caption = paste0("Source: ONS, Chart: GLA demography"))
 
-# ggsave (filename = (paste0(chart_dir, "schools_agg_ind2009_borough_lines.png")),
-#          plot = schools_agg_ind2009_borough_lines,
+# ggsave (filename = (paste0(chart_dir, "London_schools_agg_ind2009_borough_lines.png")),
+#          plot = London_schools_agg_ind2009_borough_lines,
 #          device = "png",
 #          dpi=600,
 #          width = 9,
 #          units = "in")
 
 
-ggplotly(schools_agg_ind2009_borough_lines, tooltip = "text") %>%
+ggplotly(London_schools_agg_ind2009_borough_lines, tooltip = "text") %>%
   style(hoverlabel = list(bgcolor = "white")) %>%
   layout(title= list(x = 0.05,
-                     text = "<b>Primary schools headcount, indexed to 2009, London<b>", 
+                     text = "<b>Primary schools headcount, indexed to 2009, London boroughs <b>", 
                      font=list(size = 15, family = "Arial")))
 
 
 ```
+
+
+```{r fig_Rest_ofEng_Prim_schools_line_1, fig.height = 5.56, fig.width = 9,   echo=FALSE, warning=FALSE, message=FALSE}
+
+my_pal = gla_pal(palette_type = "categorical",
+        palette_name = "core", n = 9)
+
+# Now plot schools data by English region
+
+# Aggregate by region 
+
+region_primary_schools <- input_all_schools_data %>%
+  filter(la_name.x != "City of London") %>%
+  filter(age < 11) %>%
+  filter(type == "State-funded") %>%
+  group_by(period_start, region_name) %>% 
+  summarise(agg_full_time = sum(full_time)) %>%
+ # mutate(Year = as.character(year)) %>%
+  data.frame()
+
+regions_primary_schools_lines <- region_primary_schools %>%
+   ggplot(aes(x = period_start, y = agg_full_time/1000, group = region_name, color = region_name,
+             text = paste("Year  :", period_start,
+                            "<br>Zone : ", region_name,
+                            "<br>Headcount : ", round(agg_full_time, digits = 0))
+  )) +
+  theme_gla() +
+  theme(plot.title = element_text(size = 16, hjust = 0.5)) +
+  theme(legend.position = "right") +
+  geom_line() + 
+  scale_color_manual(name='Zone:', values = my_pal) +
+  labs(title= "State-funded full-time primary school pupils, by region of England, 2009 - 2022", 
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+regions_primary_schools_lines
+
+```
+
+
+```{r fig_Rest_ofEng_Prim_schools_line_2, fig.height = 5.56, fig.width = 9,   echo=FALSE, warning=FALSE, message=FALSE}
+
+# Index aggregated values to 2009 value
+
+region_ind2009_lines <- region_primary_schools %>%
+   group_by(region_name) %>% 
+   mutate(indexed_headcount = (agg_full_time/first(agg_full_time))*100) %>% 
+   ggplot(aes(x = period_start, y = indexed_headcount, group = region_name, color = region_name
+             , text = paste("Year  :", period_start,
+                            "<br>Zone : ", region_name,
+                            "<br>Head count as % of 2009 : ", round(indexed_headcount, digits = 0))
+  )) +
+  theme_gla() +
+  geom_line() + 
+  geom_hline(yintercept=100)+
+   theme(plot.title = element_text(size = 16, hjust = 0.5)) +
+  theme(legend.position = "right") +
+ # scale_y_continuous(breaks = seq(88, 102, 2)) + #, limits = c(88, 102)) +
+ scale_color_manual(name='Zone:', values = my_pal) +
+  labs(title= "State-funded full-time primary school pupils, by regions of England, 2009 - 2022, indexed to 2009", 
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+#region_ind2009_lines
+
+ggsave (filename = (paste0(chart_dir, "region_ind2009_lines.png")),
+         plot = region_ind2009_lines,
+         device = "png",
+         dpi=600,
+         width = 9,
+         units = "in")
+
+
+ggplotly(region_ind2009_lines, tooltip = "text") %>%
+  style(hoverlabel = list(bgcolor = "white")) %>%
+  layout(title= list(x = 0.05,
+                     text = "<b>State-funded full-time primary school pupils, by regions of England, 2009 - 2022, indexed to 2009<b>", 
+                     font=list(size = 15, family = "Arial")))
+
+
+```
+
+
+
+```{r fig_Rest_ofEng_Prim_schools_line_3, fig.height = 5.56, fig.width = 9,   echo=FALSE, warning=FALSE, message=FALSE}
+
+# Aggregate to two categories, London and the rest of England, and index to 2009 value
+
+catcolour2 = rev(c('#e41a1c','#377eb8'))
+
+London_orNot <- region_primary_schools %>%
+  mutate(london = case_when(region_name == "London" ~ "London",  TRUE ~ "Rest of England")) %>%
+  mutate(london_factor = as.factor(london)) %>%
+   group_by(period_start, london_factor) %>% 
+  summarise(agg_agg_full_time = sum(agg_full_time)) %>%
+  data.frame()
+  
+
+London_orNot_ind2009_lines <- London_orNot %>%
+   group_by(london_factor) %>% 
+   mutate(indexed_headcount = (agg_agg_full_time/first(agg_agg_full_time))*100) %>% 
+   ggplot(aes(x = period_start, y = indexed_headcount, group = london_factor, color = london_factor
+             , text = paste("Year  :", period_start,
+                            "<br>Zone : ", london_factor,
+                            "<br>Head count as % of 2009 : ", round(indexed_headcount, digits = 0))
+  )) +
+  theme_gla() +
+  geom_line() + 
+  geom_hline(yintercept=100)+
+   theme(plot.title = element_text(size = 16, hjust = 0.5)) +
+  theme(legend.position = "right") +
+ # scale_color_manual(name='Zone:', values = my_pal) +
+ scale_colour_manual(values=c("purple", "green"), 
+                       name="Zone") +
+labs(title= "State-funded full-time primary school pupils, 2009 - 2022, indexed to 2009", 
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+London_orNot_ind2009_lines
+
+
+```
+
+
+```{r fig_Rest_ofEng_Prim_schools_line_4, fig.height = 5.56, fig.width = 9,   echo=FALSE, warning=FALSE, message=FALSE}
+
+# Add rest of England indexed plot to London zone indexed plot
+
+Inner_London_schools_agg_ind2009 <- agg_input_london_primary_schools %>%
+   group_by(cityORcounty_name) %>% 
+   mutate(indexed_headcount = (agg_full_time/first(agg_full_time))*100) %>% 
+   filter(cityORcounty_name == "Inner London") %>%
+  data.frame()
+
+Outer_London_schools_agg_ind2009 <- agg_input_london_primary_schools %>%
+   group_by(cityORcounty_name) %>% 
+   mutate(indexed_headcount = (agg_full_time/first(agg_full_time))*100) %>% 
+   filter(cityORcounty_name == "Outer London") %>%
+  data.frame()
+
+RestofEng_ind2009 <- London_orNot %>%
+   group_by(london_factor) %>% 
+   mutate(indexed_headcount = (agg_agg_full_time/first(agg_agg_full_time))*100) %>% 
+  filter(london_factor == "Rest of England") %>%
+  data.frame()
+
+LondonZone_orNot_ind2009_lines <-
+   ggplot() +
+  theme_gla() +
+  geom_line(data = Inner_London_schools_agg_ind2009, aes(x = period_start, y = indexed_headcount, group = 1, color = '#e41a1c' ) ) +
+    geom_line(data = Outer_London_schools_agg_ind2009, aes(x = period_start, y = indexed_headcount, group = 1,color = '#377eb8') ) +
+   geom_line(data = RestofEng_ind2009, aes(x = period_start, y = indexed_headcount, group = 1, color = "green")) +
+  geom_hline(yintercept=100)+
+   theme(plot.title = element_text(size = 16, hjust = 0.5)) +
+  theme(legend.position = "right") +
+   scale_color_manual(name="Legend:", values=c( '#377eb8','#e41a1c' ,"green"), labels=c("Outer London", "Inner London", "Rest of England")) +
+   labs(title= "State-funded full-time primary school pupils, 2009 - 2022, indexed to 2009",
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+LondonZone_orNot_ind2009_lines
+
+
+
+# ggsave (filename = (paste0(chart_dir, "LondonZone_orNot_ind2009_lines.png")),
+#          plot = LondonZone_orNot_ind2009_lines,
+#          device = "png",
+#          dpi=600,
+#          width = 9,
+#          units = "in")
+# 
+# 
+# ggplotly(LondonZone_orNot_ind2009_lines, tooltip = "text") %>%
+#   style(hoverlabel = list(bgcolor = "white")) %>%
+#   layout(title= list(x = 0.05,
+#                      text = "<b>State-funded full-time primary school pupils, 2009 - 2022, indexed to 2009<b>", 
+#                      font=list(size = 15, family = "Arial")))
+
+
+
+```
+
+
+
+```{r fig_London_Sec_schools_line_1, fig.height = 5.56, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+catcolour2 = rev(c('#e41a1c','#377eb8'))
+
+# Aggregate by Zone of London
+
+agg_input_london_secondary_schools <- input_all_schools_data %>%
+  filter(grepl('E09', new_la_code)) %>%
+  filter(la_name.x != "City of London") %>%
+  filter(age > 10) %>%
+  filter(type == "State-funded") %>%
+  group_by(period_start, cityORcounty_name) %>% 
+  summarise(agg_full_time = sum(full_time)) %>%
+ # mutate(Year = as.character(year)) %>%
+  data.frame()
+
+London_sec_schools_agg_lines <- agg_input_london_secondary_schools %>%
+   ggplot(aes(x = period_start, y = agg_full_time/1000, group = cityORcounty_name, color = cityORcounty_name,
+             text = paste("Year  :", period_start,
+                            "<br>Zone : ", cityORcounty_name,
+                            "<br>Headcount : ", round(agg_full_time, digits = 0))
+  )) +
+  theme_gla() +
+  theme(plot.title = element_text(size = 16, hjust = 0.5)) +
+  theme(legend.position = "right") +
+  geom_line() + 
+  scale_color_manual(name='Zone:', values = rev(catcolour2)) +
+  labs(title= "State-funded full-time secondary school pupils by Zone, London, 2009 - 2022", 
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+London_sec_schools_agg_lines
+
+```
+
+
+```{r fig_London_Sec_schools_line_2, fig.height = 5.56, fig.width = 9,   echo=FALSE, warning=FALSE, message=FALSE}
+
+# Index aggregated values to 2009 value
+
+London_sec_schools_agg_ind2009_lines <- agg_input_london_secondary_schools %>%
+   group_by(cityORcounty_name) %>% 
+   mutate(indexed_headcount = (agg_full_time/first(agg_full_time))*100) %>% 
+   ggplot(aes(x = period_start, y = indexed_headcount, group = cityORcounty_name, color = cityORcounty_name
+             , text = paste("Year  :", period_start,
+                            "<br>Zone : ", cityORcounty_name,
+                            "<br>Head count as % of 2009 : ", round(indexed_headcount, digits = 0))
+  )) +
+  theme_gla() +
+  geom_line() + 
+  geom_hline(yintercept=100)+
+   theme(plot.title = element_text(size = 16, hjust = 0.5)) +
+  theme(legend.position = "right") +
+ # scale_y_continuous(breaks = seq(88, 102, 2)) + #, limits = c(88, 102)) +
+ scale_color_manual(name='Zone:', values = rev(catcolour2)) +
+  labs(title= "State-funded full-time secondary school pupils by Zone, London, 2009 - 2022, indexed to 2009", 
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+London_sec_schools_agg_ind2009_lines
+
+
+
+```
+
+
+```{r fig_Rest_ofEng_Sec_schools_line_1, fig.height = 5.56, fig.width = 9,   echo=FALSE, warning=FALSE, message=FALSE}
+
+my_pal = gla_pal(palette_type = "categorical",
+        palette_name = "core", n = 9)
+
+# Now plot secondary schools data by English region
+
+# Aggregate by region 
+
+region_secondary_schools <- input_all_schools_data %>%
+  filter(la_name.x != "City of London") %>%
+  filter(age > 10) %>%
+  filter(type == "State-funded") %>%
+  group_by(period_start, region_name) %>% 
+  summarise(agg_full_time = sum(full_time)) %>%
+ # mutate(Year = as.character(year)) %>%
+  data.frame()
+
+regions_secondary_schools_lines <- region_secondary_schools %>%
+   ggplot(aes(x = period_start, y = agg_full_time/1000, group = region_name, color = region_name,
+             text = paste("Year  :", period_start,
+                            "<br>Zone : ", region_name,
+                            "<br>Headcount : ", round(agg_full_time, digits = 0))
+  )) +
+  theme_gla() +
+  theme(plot.title = element_text(size = 16, hjust = 0.5)) +
+  theme(legend.position = "right") +
+  geom_line() + 
+  scale_color_manual(name='Zone:', values = my_pal) +
+  labs(title= "State-funded full-time primary school pupils, by region of England, 2009 - 2022", 
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+regions_secondary_schools_lines
+
+```
+           
+
+
+
+```{r fig_Rest_ofEng_Sec_schools_line_2, fig.height = 5.56, fig.width = 9,   echo=FALSE, warning=FALSE, message=FALSE}
+
+# Index aggregated values to 2009 value
+
+region_ind2009_lines <- region_secondary_schools %>%
+   group_by(region_name) %>% 
+   mutate(indexed_headcount = (agg_full_time/first(agg_full_time))*100) %>% 
+   ggplot(aes(x = period_start, y = indexed_headcount, group = region_name, color = region_name
+             , text = paste("Year  :", period_start,
+                            "<br>Zone : ", region_name,
+                            "<br>Head count as % of 2009 : ", round(indexed_headcount, digits = 0))
+  )) +
+  theme_gla() +
+  geom_line() + 
+  geom_hline(yintercept=100)+
+   theme(plot.title = element_text(size = 16, hjust = 0.5)) +
+  theme(legend.position = "right") +
+ # scale_y_continuous(breaks = seq(88, 102, 2)) + #, limits = c(88, 102)) +
+ scale_color_manual(name='Zone:', values = my_pal) +
+  labs(title= "State-funded full-time secondary school pupils, by region of England, 2009 - 2022, indexed to 2009", 
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+region_ind2009_lines
+
+# ggsave (filename = (paste0(chart_dir, "region_ind2009_lines.png")),
+#          plot = region_ind2009_lines,
+#          device = "png",
+#          dpi=600,
+#          width = 9,
+#          units = "in")
+# 
+# 
+# ggplotly(region_ind2009_lines, tooltip = "text") %>%
+#   style(hoverlabel = list(bgcolor = "white")) %>%
+#   layout(title= list(x = 0.05,
+#                      text = "<b>State-funded full-time secondary school pupils, Regions, 2009 - 2022, indexed to 2009<b>", 
+#                      font=list(size = 15, family = "Arial")))
+
+
+```
+
+
+```{r fig_Rest_ofEng_Sec_schools_line_3, fig.height = 5.56, fig.width = 9,   echo=FALSE, warning=FALSE, message=FALSE}
+
+# Aggregate to two categories, London and the rest of England, and index to 2009 value
+
+catcolour2 = rev(c('#e41a1c','#377eb8'))
+
+London_orNot <- region_secondary_schools %>%
+  mutate(london = case_when(region_name == "London" ~ "London",  TRUE ~ "Rest of England")) %>%
+  mutate(london_factor = as.factor(london)) %>%
+   group_by(period_start, london_factor) %>% 
+  summarise(agg_agg_full_time = sum(agg_full_time)) %>%
+  data.frame()
+  
+London_orNot_ind2009_lines <- London_orNot %>%
+   group_by(london_factor) %>% 
+   mutate(indexed_headcount = (agg_agg_full_time/first(agg_agg_full_time))*100) %>% 
+   ggplot(aes(x = period_start, y = indexed_headcount, group = london_factor, color = london_factor
+             , text = paste("Year  :", period_start,
+                            "<br>Zone : ", london_factor,
+                            "<br>Head count as % of 2009 : ", round(indexed_headcount, digits = 0))
+  )) +
+  theme_gla() +
+  geom_line() + 
+  geom_hline(yintercept=100)+
+   theme(plot.title = element_text(size = 16, hjust = 0.5)) +
+  theme(legend.position = "right") +
+ # scale_color_manual(name='Zone:', values = my_pal) +
+ scale_colour_manual(values=c("purple", "green"), 
+                       name="Zone") +
+labs(title= "State-funded full-time secondary school pupils, 2009 - 2022, indexed to 2009", 
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+London_orNot_ind2009_lines
+
+
+```
+
+
+```{r fig_Rest_ofEng_Sec_schools_line_4, fig.height = 5.56, fig.width = 9,   echo=FALSE, warning=FALSE, message=FALSE}
+
+# Add rest of England indexed plot to London zone indexed plot
+
+Inner_London_schools_agg_ind2009 <- agg_input_london_secondary_schools %>%
+   group_by(cityORcounty_name) %>% 
+   mutate(indexed_headcount = (agg_full_time/first(agg_full_time))*100) %>% 
+   filter(cityORcounty_name == "Inner London") %>%
+  data.frame()
+
+Outer_London_schools_agg_ind2009 <- agg_input_london_secondary_schools %>%
+   group_by(cityORcounty_name) %>% 
+   mutate(indexed_headcount = (agg_full_time/first(agg_full_time))*100) %>% 
+   filter(cityORcounty_name == "Outer London") %>%
+  data.frame()
+
+RestofEng_ind2009 <- London_orNot %>%
+   group_by(london_factor) %>% 
+   mutate(indexed_headcount = (agg_agg_full_time/first(agg_agg_full_time))*100) %>% 
+  filter(london_factor == "Rest of England") %>%
+  data.frame()
+
+LondonZone_orNot_ind2009_lines <-
+   ggplot() +
+  theme_gla() +
+  geom_line(data = Inner_London_schools_agg_ind2009, aes(x = period_start, y = indexed_headcount, group = 1, color = '#e41a1c' ) ) +
+    geom_line(data = Outer_London_schools_agg_ind2009, aes(x = period_start, y = indexed_headcount, group = 1,color = '#377eb8') ) +
+   geom_line(data = RestofEng_ind2009, aes(x = period_start, y = indexed_headcount, group = 1, color = "green")) +
+  geom_hline(yintercept=100)+
+   theme(plot.title = element_text(size = 16, hjust = 0.5)) +
+  theme(legend.position = "right") +
+   scale_color_manual(name="Legend:", values=c( '#377eb8','#e41a1c' ,"green"), labels=c("Outer London", "Inner London", "Rest of England")) +
+   labs(title= "State-funded full-time secondary school pupils, 2009 - 2022, indexed to 2009",
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+LondonZone_orNot_ind2009_lines
+
+
+```
+
