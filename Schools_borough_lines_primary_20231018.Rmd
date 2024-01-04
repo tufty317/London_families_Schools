@@ -792,8 +792,8 @@ RestofEng_ind2009 <- London_orNot %>%
 LondonZone_orNot_ind2009_lines <-
    ggplot() +
   theme_gla() +
-   geom_line(data = Inner_London_schools_agg_ind2009, aes(x = period_start, y = indexed_headcount, group = 1, ), color = '#d82222', size = 1) +
-     geom_label_repel(data = Inner_London_schools_agg_ind2009,aes(x = period_start, y = indexed_headcount,label = label), nudge_x = 1, color = '#d82222', )+
+   geom_line(data = Inner_London_schools_agg_ind2009, aes(x = period_start, y = indexed_headcount, group = 1), color = '#d82222', size = 1) +
+     geom_label_repel(data = Inner_London_schools_agg_ind2009,aes(x = period_start, y = indexed_headcount,label = label), nudge_x = 1, color = '#d82222')+
     geom_line(data = Outer_London_schools_agg_ind2009, aes(x = period_start, y = indexed_headcount, group = 1), color = '#6da7de', size = 1 ) +
    geom_label_repel(data = Outer_London_schools_agg_ind2009,aes(x = period_start, y = indexed_headcount,label = label), nudge_x = 1,  color = '#6da7de')+
    geom_line(data = RestofEng_ind2009, aes(x = period_start, y = indexed_headcount, group = 1), color = "#5ea15d", size = 1) +

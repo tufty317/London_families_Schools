@@ -125,10 +125,10 @@ Reception_schools_geog <- Reception_schools_change %>%
   data.frame()
 
 # Colours for categories
-catdiv5B = rev(c('#00429d', '#5681b9', '#93c4d2', '#ffffe0', '#ffa59e', '#dd4c65', '#93003a'))
+catdiv5B = c('#00429d', '#5681b9', '#93c4d2', '#ffffe0', '#ffa59e', '#dd4c65', '#93003a')
 names(catdiv5B) <- levels(Reception_schools_geog$indexed_hc_Cat5)
 
-catdiv5 = c('#ca0020','#f4a582','#f7f7f7','#92c5de','#0571b0')
+catdiv5 = rev(c('#ca0020','#f4a582','#f7f7f7','#92c5de','#0571b0'))
 
 
 Reception_schools_change_map <- Reception_schools_geog %>%
@@ -219,7 +219,7 @@ London_reception_schools_geog <- Reception_schools_change %>%
   data.frame()
 
 # Colours for categories
-catdiv5 = c('#ca0020','#f4a582','#f7f7f7','#92c5de','#0571b0')
+catdiv5 = rev(c('#ca0020','#f4a582','#f7f7f7','#92c5de','#0571b0'))
 names(catdiv5) <- levels(Reception_schools_geog$indexed_hc_Cat5)
 
 London_reception_schools_change_map <- London_reception_schools_geog %>%
@@ -301,7 +301,7 @@ London_reception_schools_geog <- Reception_schools_change %>%
   data.frame()
 
 # Colours for categories
-catdiv5 = c('#ca0020','#f4a582','#f7f7f7','#92c5de','#0571b0')
+catdiv5 = rev(c('#ca0020','#f4a582','#f7f7f7','#92c5de','#0571b0'))
 names(catdiv5) <- levels(Reception_schools_geog$indexed_hc_Cat5)
 
 London_reception_schools_change_map <- London_reception_schools_geog %>%
@@ -364,7 +364,7 @@ London_reception_schools_change_int
 ```{r fig_London_Reception_schools_map_4, fig.height = 5.56, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
 
 # Colours for categories
-catdiv5B = rev(c('#00429d', '#5681b9', '#93c4d2', '#ffffe0', '#ffa59e', '#dd4c65', '#93003a'))
+catdiv5B = c('#00429d', '#5681b9', '#93c4d2', '#ffffe0', '#ffa59e', '#dd4c65', '#93003a')
 
 # Alternative map starting at 2016-7 on 18th Oct
 
@@ -393,7 +393,7 @@ London_reception_schools_geog <- New_Reception_schools_change %>%
   data.frame()
 
 # Colours for categories
-catdiv5 = c('#ca0020','#f4a582','#f7f7f7','#92c5de','#0571b0')
+catdiv5 = rev(c('#ca0020','#f4a582','#f7f7f7','#92c5de','#0571b0'))
 names(catdiv5) <- levels(Reception_schools_geog$indexed_hc_Cat5)
 
 London_reception_schools_change_map <- London_reception_schools_geog %>%
@@ -459,9 +459,9 @@ London_reception_schools_change_int
 # changing the colours in December 
 
 # Colours for categories
-catdiv5B = rev(c('#00429d', '#5681b9', '#93c4d2', '#ffffe0', '#ffa59e', '#dd4c65', '#93003a'))
+catdiv5B = c('#00429d', '#5681b9', '#93c4d2', '#ffffe0', '#ffa59e', '#dd4c65', '#93003a')
 
-londonmap7_diverge2 = c('#943fa6', '#b47bbe', '#d2b4d6', '#eeeeee', '#c3e1db', '#96d3c8', '#63c5b5')
+londonmap7_diverge2 = rev(c('#943fa6', '#b47bbe', '#d2b4d6', '#eeeeee', '#c3e1db', '#96d3c8', '#63c5b5'))
 
 London_reception_schools_geog <- New_Reception_schools_change %>% 
     filter(grepl('E09000', new_la_code)) %>%
@@ -476,7 +476,7 @@ London_reception_schools_geog <- New_Reception_schools_change %>%
   data.frame()
 
 # Colours for categories
-catdiv5 = c('#ca0020','#f4a582','#f7f7f7','#92c5de','#0571b0')
+catdiv5 = rev(c('#ca0020','#f4a582','#f7f7f7','#92c5de','#0571b0'))
 names(catdiv5) <- levels(Reception_schools_geog$indexed_hc_Cat5)
 
 London_reception_schools_change_map <- London_reception_schools_geog %>%
@@ -553,7 +553,7 @@ borough_boundaries <-
 
 # Colours for categories
 
-londonmap7_diverge2 = c('#943fa6', '#b47bbe', '#d2b4d6', '#eeeeee', '#c3e1db', '#96d3c8', '#63c5b5')
+londonmap7_diverge2 = rev(c('#943fa6', '#b47bbe', '#d2b4d6', '#eeeeee', '#c3e1db', '#96d3c8', '#63c5b5'))
 
 
 Reception_schools_geog <- New_Reception_schools_change %>% 
@@ -624,18 +624,116 @@ ggsave (filename = (paste0(chart_dir, "Schools_LondonAndAround_Reception_change_
 ```
 
 
+```{r fig_London_Reception_schools_map_7, fig.height = 5.56, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+## Now do all primary school headcount, not just reception  
+
+input_primary_schools_data <- fread(paste0(data_dir,"pupils_lad_type_age_2009to22.csv")) %>%
+  filter(age < 11) %>%
+  filter(type == "State-funded") %>%
+   data.frame()
+
+input_primary_schools_change <- input_primary_schools_data %>%
+  filter(time_period > 201516) %>%
+  group_by(new_la_code) %>% 
+  mutate(indexed_headcount = (full_time/first(full_time))*100) %>%
+  filter(time_period == 202223) %>%
+  filter(new_la_code != "E06000053") %>%
+  arrange(new_la_code) %>%
+  data.frame()   
+
+
+# Import Region boundaries for UK
+south_region_boundaries <-
+  st_read("C:/Geographical/England_Region_Boundaries/RGN_DEC_2022_EN_BUC.shp", quiet = TRUE) %>%
+    mutate(London = ifelse((RGN22CD=="E12000007"), "yes", "no")) %>%
+    filter(RGN22CD=="E12000006" | RGN22CD=="E12000007" | RGN22CD=="E12000008" )
+
+# Import LA boundaries for England 
+borough_boundaries <-
+  st_read(paste0(data_dir,"local_education_authorities.shp"), quiet = TRUE)
+
+# Colours for categories
+
+londonmap7_diverge2 = rev(c('#943fa6', '#b47bbe', '#d2b4d6', '#eeeeee', '#c3e1db', '#96d3c8', '#63c5b5'))
+
+
+Primary_schools_geog <- input_primary_schools_change %>% 
+    left_join(borough_boundaries, by=c('new_la_code' = 'new_la_cod')) %>%
+      mutate(indexed_hc_Cat5 = cut(indexed_headcount, breaks = c(0, 87, 90, 96, 103, 110, 120, 1000),
+                      right=FALSE,
+                      labels = c(" 0 - 86.9",
+                                 " 87 - 89.9",
+                                 " 90 - 95.9",
+                                 " 96 - 102.9",
+                                 " 103 - 109.9",
+                                 " 110 - 119.9",
+                                 "120+"))) %>%
+  data.frame()
+
+Primary_schools_change_map <- Primary_schools_geog %>%
+  ggplot() +
+  geom_sf(aes(geometry=geometry, fill=indexed_hc_Cat5),  lwd = 0.1)+
+    geom_sf(data = south_region_boundaries, aes(x=LONG, y=LAT, geometry=geometry), alpha = 0.01, lwd = 0.7, colour = "black")+
+  theme(legend.position = "right")+
+  theme(plot.title = element_text(size = 16, hjust = 0.5)) +
+  theme(legend.position = "right") +
+  #theme(legend.title = element_blank()) +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank()) +
+  theme(panel.background = element_blank()) +
+  theme(plot.caption = element_text (hjust = 0)) +
+  theme(plot.title = element_text(size = 16)) +  #, hjust = 0.5
+  theme(plot.subtitle = element_text(size = 12)) + #, hjust= 0.5
+  theme(plot.caption = element_text(size = 10, hjust= 0)) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_blank(), 
+        axis.text.y = element_blank(), 
+        axis.ticks.x = element_blank(), 
+        axis.ticks.y = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=2)) +
+  scale_fill_manual("", values =londonmap7_diverge2)+ 
+  labs(title = "Change in Primary school headcount in London, 2016-17 to 2022-23", 
+       subtitle = "Indexed to academic year 2016-17",
+       caption = "Source: DFE, Chart: GLA demography") +
+    coord_sf(xlim = c(480000,580000), ylim = c(130000, 220000))
+
+Primary_schools_change_map
+
+ggsave (filename = (paste0(chart_dir, "Schools_LondonAndAround_Primary_change_map.png")),
+         plot = Primary_schools_change_map,
+         device = "png",
+         dpi=600,
+         width = 9,
+         height = 5.56,
+         units = "in")
+
+# Interactive map using ggplotly
+# London_reception_schools_change_int <- ggplotly(Reception_schools_change_map, tooltip = "text") %>%
+#     layout(title= list(x = 0.05,
+#          text = "<b>Change in Reception school headcount between 2016-7 and 2022-3<b>", 
+#          font=list(size = 15, family = "Arial")),
+#          font=list(size = 14, family = "Arial", color = "black", fontface = "bold"),
+#          legend = list(title = list(text = "Headcount\n% of 2016-7 value"))) %>% 
+#   #add_annotations(text="", showarrow=FALSE, legendtitle=FALSE) %>%
+#   layout(annotations = list(x = 0.05, y = -0.05, text = "Source: DFE, Chart: GLA demography", 
+#                            showarrow = F, xref='paper', yref='paper', 
+#                             font=list(size=14)) ) %>%
+#  layout(margin = list(l = 100,r = 100,  b =0,  t = 100,  pad = 4))
+# 
+# Reception_schools_change_int
+
+
+```
+
+
 
 ```{r fig_London_Secondary_schools_map, fig.height = 5.56, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
 
 ## Now do map for secondary schools too
 
 # SCHOOLS DATA for children in London going further back in time, that Ben provided.
-
-boroughcodes <- fread(paste0(data_dir,"InnerLondon.csv")) %>%   
-  data.frame
-
-cityORcounty_codes <- fread(paste0(data_dir,"cityORcounty.csv")) %>%   
-  data.frame
 
 # Input data for headcounts of children and merge with city/county file
 
@@ -656,7 +754,7 @@ borough_boundaries <-
 
 # Colours for categories
 
-londonmap7_diverge2 = c('#943fa6', '#b47bbe', '#d2b4d6', '#eeeeee', '#c3e1db', '#96d3c8', '#63c5b5')
+londonmap7_diverge2 = rev(c('#943fa6', '#b47bbe', '#d2b4d6', '#eeeeee', '#c3e1db', '#96d3c8', '#63c5b5'))
 
 
 
@@ -674,20 +772,22 @@ Secondary_schools_change <- input_all_schools_data %>%
 
 Secondary_schools_geog <- Secondary_schools_change %>% 
     left_join(borough_boundaries, by=c('new_la_code' = 'new_la_cod')) %>%
-    mutate(indexed_hc_Cat5 = cut(indexed_full_time, breaks = c(0, 87, 90, 96, 103, 1000),
+    mutate(indexed_hc_Cat5 = cut(indexed_full_time, breaks = c(0, 87, 90, 96, 103, 110, 120, 1000),
                       right=FALSE,
                       labels = c(" 0 - 86.9",
                                  " 87 - 89.9",
                                  " 90 - 95.9",
                                  " 96 - 102.9",
-                                 "103 - 1000"))) %>%
+                                 " 103 - 109.9",
+                                 " 110 - 119.9",
+                                 "120+"))) %>%
   data.frame()
 
 
 
 
-londonmap7_diverge2 = c('#943fa6', '#b47bbe', '#d2b4d6', '#eeeeee', '#c3e1db', '#96d3c8', '#63c5b5')
-names(londonmap7_diverge2) <- levels(factor(c(levels(Secondary_schools_geog$indexed_hc_Cat5))))
+londonmap5_diverge2 = c('#c3e1db','#eeeeee','#d2b4d6','#b47bbe','#943fa6')
+#names(londonmap7_diverge2) <- levels(factor(c(levels(Secondary_schools_geog$indexed_hc_Cat5))))
 
 
 Secondary_schools_change_map <- Secondary_schools_geog %>%
@@ -712,7 +812,7 @@ Secondary_schools_change_map <- Secondary_schools_geog %>%
         axis.ticks.x = element_blank(), 
         axis.ticks.y = element_blank(),
         panel.border = element_rect(colour = "black", fill=NA, size=2)) +
-  scale_fill_manual("", values =londonmap7_diverge2)+ 
+  scale_fill_manual("", values =londonmap5_diverge2)+ 
   labs(title = "Change in Secondary school headcount in London, 2016-17 to 2022-23", 
        subtitle = "Indexed to academic year 2016-17",
        caption = "Source: DFE, Chart: GLA demography") +
@@ -721,7 +821,7 @@ Secondary_schools_change_map <- Secondary_schools_geog %>%
 Secondary_schools_change_map
 
 ggsave (filename = (paste0(chart_dir, "Schools_LondonAndAround_Secondary_change_map.png")),
-         plot = Reception_schools_change_map,
+         plot = Secondary_schools_change_map,
          device = "png",
          dpi=600,
          width = 9,
