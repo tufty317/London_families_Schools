@@ -1,0 +1,249 @@
+---
+title: "London Schools ethnicity analysis, Jan 3rd 2024"
+output: 
+  html_document:
+    css: Wil_style.css
+    theme: default
+    toc: TRUE
+    toc_float: TRUE
+    number_sections: TRUE
+always_allow_html: yes
+---
+
+```{r setup1, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+library(zoo)
+library(data.table)
+library(tidyverse)
+library(gglaplot)
+library(ggplot2)
+library(scales)
+library(readxl)
+library(knitr)
+library(sf)
+library(sp)
+library(kableExtra)
+library(magick)
+
+library(plotly)    
+library(RColorBrewer)
+library(htmltools)
+library(prettydoc)
+library(rmdformats)
+library(ggrepel)
+
+chart_dir <- 'C:/Families/Charts/'
+
+data_dir <- 'DATA/'
+
+# Disable scientific notation
+options(scipen=999)
+
+```
+
+```{r setup2, include=FALSE}
+
+## SCHOOLS DATA For children 
+
+# These are data from the DFE website.
+
+input_London_primary_schools <- fread(paste0(data_dir,"London_State_primary_pupils_ethnicity_201516_to_202223.csv")) %>%
+    mutate(across(c(Group), factor)) %>%
+      filter(Group != "Total") %>%
+   data.frame() 
+
+input_London_secondary_schools <- fread(paste0(data_dir,"London_State_secondary_pupils_ethnicity_201516_to_202223.csv")) %>%
+    mutate(across(c(time_period, Group), factor)) %>%
+      filter(Group != "Total") %>%
+   data.frame() 
+
+
+```
+
+```{r fig_London_prim_schools_line_1, fig.height = 5, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+# Plot primary schools numbers over time by ethnicity
+
+
+catcolour5 = c('#d82222', '#6da7de', '#eb861e', '#5ea15d', '#943fa6') # '#63c5b5' is turquoise
+
+London_prim_schools_lines <- input_London_primary_schools %>%
+    mutate(label = if_else(time_period == max(time_period), as.character(Group),NA_character_)) %>%
+   ggplot(aes(x = time_period, y = Percent, group = Group, color = Group
+             , text = paste("Year  :", time_period,
+                            "<br>Ethnic group : ", Group,
+                            "<br>Head count ", round(Percent, digits = 0))
+  )) +
+  theme_gla() +
+  geom_line() + 
+ scale_color_manual(name='Ethnic group:', values = catcolour5, guide = FALSE) +
+    scale_y_continuous(labels = label_number(suffix = "%")) +
+    geom_label_repel(aes(label = label), nudge_x = 0.2)+
+  labs(title= "Primary schools % ethnic group, London, 2015 - 2022", 
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+London_prim_schools_lines
+
+# ggplotly(London_prim_schools_lines, tooltip = "text") %>%
+#   style(hoverlabel = list(bgcolor = "white")) %>%
+#   layout(title= list(x = 0.05,
+#                      text = "<b>Primary schools % ethnic group, London, 2015 - 2022<b>", 
+#                      font=list(size = 15, family = "Arial")))
+# 
+ggsave (filename = (paste0(chart_dir, "Prim_schools_eth_lines.png")),
+         plot = London_prim_schools_lines,
+         device = "png",
+         dpi=600,
+         width = 9,
+         height = 5.56,
+         units = "in")
+
+
+
+
+```
+
+```{r fig_London_prim_schools_area_1, fig.height = 5, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+my_palette <- gla_pal(palette_type = "categorical",
+                   palette_name = "light", n = 5)
+
+
+catcolour5 = c('#d82222', '#6da7de', '#eb861e', '#5ea15d', '#943fa6') # '#63c5b5' is turquoise
+
+London_prim_schools_area_abs <- input_London_primary_schools %>% 
+  mutate(Outcome_Category = as.factor(Group)) %>%
+  mutate(Thousands = Headcount/1000) %>%
+  group_by(Outcome_Category) %>%
+  ggplot(aes(x=time_period, y=Thousands, 
+             fill=Outcome_Category, 
+             group=Outcome_Category)) + 
+  geom_area(alpha = 0.8) +
+  theme_gla(y_axis_title = TRUE) +
+  theme(axis.title.x=element_blank(),
+  axis.text.x=element_blank())+
+  scale_fill_manual(values=catcolour5, labels = c("Asian", "Black", "Mixed", "Other", "White")) +
+  labs(title = "Primary schools ethnic group headount (thousands), London, 2015 - 2022")
+London_prim_schools_area_abs
+
+
+```
+
+
+```{r fig_London_prim_schools_area_2, fig.height = 5, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+my_palette <- gla_pal(palette_type = "categorical",
+                   palette_name = "light", n = 5)
+
+
+catcolour5 = c('#d82222', '#6da7de', '#eb861e', '#5ea15d', '#943fa6') # '#63c5b5' is turquoise
+
+London_prim_schools_area_prop <- input_London_primary_schools %>% 
+  mutate(Outcome_Category = as.factor(Group)) %>%
+   group_by(Outcome_Category) %>%
+  ggplot(aes(x=time_period, y=Percent, 
+             fill=Outcome_Category, 
+             group=Outcome_Category)) + 
+  geom_area(alpha = 0.8) +
+  theme_gla(y_axis_title = TRUE) +
+  theme(axis.title.x=element_blank(),
+  axis.text.x=element_blank())+
+  scale_fill_manual(values=catcolour5, labels = c("Asian", "Black", "Mixed", "Other", "White")) +
+  labs(title = "Primary schools ethnic group percent, London, 2015 - 2022")
+London_prim_schools_area_prop
+
+
+```
+
+```{r fig_London_sec_schools_line_1, fig.height = 5, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+# Plot secondary schools numbers over time by ethnicity
+
+
+catcolour5 = c('#d82222', '#6da7de', '#eb861e', '#5ea15d', '#943fa6') # '#63c5b5' is turquoise
+
+London_sec_schools_lines <- input_London_secondary_schools %>%
+   ggplot(aes(x = time_period, y = Percent, group = Group, color = Group
+             , text = paste("Year  :", time_period,
+                            "<br>Ethnic group : ", Group,
+                            "<br>Head count ", round(Percent, digits = 0))
+  )) +
+  theme_gla() +
+  geom_line() + 
+ scale_color_manual(name='Ethnic group:', values = catcolour5) +
+  labs(title= "Secondary schools % ethnic group, London, 2015 - 2022", 
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+
+ 
+ggplotly(London_sec_schools_lines, tooltip = "text") %>%
+  style(hoverlabel = list(bgcolor = "white")) %>%
+  layout(title= list(x = 0.05,
+                     text = "<b>Secondary schools % ethnic group, London, 2015 - 2022<b>",
+                     font=list(size = 15, family = "Arial")))
+
+ggsave (filename = (paste0(chart_dir, "Sec_schools_eth_lines.png")),
+         plot = London_sec_schools_lines,
+         device = "png",
+         dpi=600,
+         width = 9,
+         height = 5.56,
+         units = "in")
+
+
+
+```
+
+```{r fig_London_primary_schools_line_2, fig.height = 5, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+# Plot London primary schools numbers over time, by ethnicity, indexed to 201516 value
+
+London_prim_schools_lines_ind <- input_London_primary_schools %>%
+  group_by(Group) %>% 
+  mutate(indexed_headcount = (Headcount/first(Headcount))*100) %>% 
+  ggplot(aes(x = time_period, y = indexed_headcount, group = Group, color = Group
+             , text = paste("Year  :", time_period,
+                            "<br>Ethnic group : ", Group,
+                            "<br>Head count as % of 2015 ", round(indexed_headcount, digits = 0))
+  )) +
+  theme_gla() +
+  geom_line() + 
+  geom_hline(yintercept=100)+
+ scale_color_manual(name='Zone:', values = catcolour5) +
+  labs(title= "Primary schools headcount, London, 2015 - 2022, indexed to 2015", 
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+
+ggplotly(London_prim_schools_lines_ind, tooltip = "text") %>%
+  style(hoverlabel = list(bgcolor = "white")) %>%
+  layout(title= list(x = 0.05,
+                     text = "<b>Primary schools headcount, indexed to 2015<b>", 
+                     font=list(size = 15, family = "Arial")))
+
+```
+
+```{r fig_London_secondary_schools_line_2, fig.height = 5, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+# Plot London secondary schools numbers over time, by ethnicity, indexed to 201516 value
+
+London_sec_schools_lines_ind <- input_London_secondary_schools %>%
+  group_by(Group) %>% 
+  mutate(indexed_headcount = (Headcount/first(Headcount))*100) %>% 
+  ggplot(aes(x = time_period, y = indexed_headcount, group = Group, color = Group
+             , text = paste("Year  :", time_period,
+                            "<br>Ethnic group : ", Group,
+                            "<br>Head count as % of 2015 ", round(indexed_headcount, digits = 0))
+  )) +
+  theme_gla() +
+  geom_line() + 
+  geom_hline(yintercept=100)+
+ scale_color_manual(name='Zone:', values = catcolour5) +
+  labs(title= "Secondary schools headcount, London, 2015 - 2022, indexed to 2015", 
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+
+ggplotly(London_sec_schools_lines_ind, tooltip = "text") %>%
+  style(hoverlabel = list(bgcolor = "white")) %>%
+  layout(title= list(x = 0.05,
+                     text = "<b>Secondary schools headcount, indexed to 2015<b>", 
+                     font=list(size = 15, family = "Arial")))
+
+```
