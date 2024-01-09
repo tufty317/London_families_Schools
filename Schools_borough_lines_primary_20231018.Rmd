@@ -545,6 +545,7 @@ LondonZone_orNot_ind2009_lines <-
    theme(plot.title = element_text(size = 16)) +
   theme(legend.position = "right") +
    scale_color_manual(name="", values=c('#d82222','#6da7de','#5ea15d'), labels=c("Inner London", "Outer London","Rest of England and Wales")) +
+   scale_y_continuous(labels = label_number(suffix = "%"))+ 
    labs(title= "Change in state-funded full-time primary school pupils, 2009 - 2022",
    subtitle = "Indexed to 2009",
        caption = paste0("Source: ONS, Chart: GLA demography"))

@@ -589,7 +589,7 @@ Reception_schools_change_map <- Reception_schools_geog %>%
         axis.ticks.x = element_blank(), 
         axis.ticks.y = element_blank(),
         panel.border = element_rect(colour = "black", fill=NA, size=2)) +
-  scale_fill_manual("", values =londonmap7_diverge2)+ 
+  scale_fill_manual("% change", values =londonmap7_diverge2)+ 
   labs(title = "Change in Reception school headcount in London, 2016-17 to 2022-23", 
        subtitle = "Indexed to academic year 2016-17",
        caption = "Source: DFE, Chart: GLA demography") +
@@ -693,7 +693,7 @@ Primary_schools_change_map <- Primary_schools_geog %>%
         axis.ticks.x = element_blank(), 
         axis.ticks.y = element_blank(),
         panel.border = element_rect(colour = "black", fill=NA, size=2)) +
-  scale_fill_manual("", values =londonmap7_diverge2)+ 
+  scale_fill_manual("% change", values =londonmap7_diverge2)+ 
   labs(title = "Change in Primary school headcount in London, 2016-17 to 2022-23", 
        subtitle = "Indexed to academic year 2016-17",
        caption = "Source: DFE, Chart: GLA demography") +
@@ -794,7 +794,6 @@ Secondary_schools_change_map <- Secondary_schools_geog %>%
   ggplot() +
   geom_sf(aes(geometry=geometry, fill=indexed_hc_Cat5),  lwd = 0.1)+
     geom_sf(data = south_region_boundaries, aes(x=LONG, y=LAT, geometry=geometry), alpha = 0.01, lwd = 0.7, colour = "black")+
-  theme(legend.position = "right")+
   theme(plot.title = element_text(size = 16, hjust = 0.5)) +
   theme(legend.position = "right") +
   #theme(legend.title = element_blank()) +
@@ -812,7 +811,7 @@ Secondary_schools_change_map <- Secondary_schools_geog %>%
         axis.ticks.x = element_blank(), 
         axis.ticks.y = element_blank(),
         panel.border = element_rect(colour = "black", fill=NA, size=2)) +
-  scale_fill_manual("", values =londonmap5_diverge2)+ 
+  scale_fill_manual("% change", values =londonmap5_diverge2)+ 
   labs(title = "Change in Secondary school headcount in London, 2016-17 to 2022-23", 
        subtitle = "Indexed to academic year 2016-17",
        caption = "Source: DFE, Chart: GLA demography") +
