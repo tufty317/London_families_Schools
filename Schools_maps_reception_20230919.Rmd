@@ -662,12 +662,12 @@ Primary_schools_geog <- input_primary_schools_change %>%
     left_join(borough_boundaries, by=c('new_la_code' = 'new_la_cod')) %>%
       mutate(indexed_hc_Cat5 = cut(indexed_headcount, breaks = c(0, 87, 90, 96, 103, 110, 120, 1000),
                       right=FALSE,
-                      labels = c(" 0 - 86.9",
-                                 " 87 - 89.9",
-                                 " 90 - 95.9",
-                                 " 96 - 102.9",
-                                 " 103 - 109.9",
-                                 " 110 - 119.9",
+                      labels = c("0 - ",
+                                 "87 - ",
+                                 "90 - ",
+                                 "96 - ",
+                                 "103 - ",
+                                 "110 - ",
                                  "120+"))) %>%
   data.frame()
 
@@ -686,6 +686,10 @@ Primary_schools_change_map <- Primary_schools_geog %>%
   theme(plot.title = element_text(size = 16)) +  #, hjust = 0.5
   theme(plot.subtitle = element_text(size = 12)) + #, hjust= 0.5
   theme(plot.caption = element_text(size = 10, hjust= 0)) +
+  theme(legend.text = element_text(size=16)) +
+  theme(legend.title = element_text(size=16)) +
+  theme(legend.key.height= unit(1, 'cm'),
+        legend.key.width= unit(0.7, 'cm')) +
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         axis.text.x = element_blank(), 
@@ -693,7 +697,7 @@ Primary_schools_change_map <- Primary_schools_geog %>%
         axis.ticks.x = element_blank(), 
         axis.ticks.y = element_blank(),
         panel.border = element_rect(colour = "black", fill=NA, size=2)) +
-  scale_fill_manual("% change", values =londonmap7_diverge2)+ 
+  scale_fill_manual("% value\nin 2016-17", values =londonmap7_diverge2)+ 
   labs(title = "Change in Primary school headcount in London, 2016-17 to 2022-23", 
        subtitle = "Indexed to academic year 2016-17",
        caption = "Source: DFE, Chart: GLA demography") +
