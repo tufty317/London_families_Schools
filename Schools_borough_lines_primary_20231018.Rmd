@@ -700,15 +700,15 @@ LondonZone_orNot_SF_2009_lines <-
   theme_gla() +
   geom_line(data = Inner_London_SF_schools_agg_ind2009, aes(x = period_start_num, 
                                                          y = indexed_headcount, group = 1), 
-            color = '#d82222', size = 1) +
+            color = '#d82222', size = 2) +
     geom_label_repel(data = Inner_London_SF_schools_agg_ind2009,aes(x = period_start_num, y = indexed_headcount,label = label), nudge_x = 1, color = '#d82222')+
     geom_line(data = Outer_London_SF_schools_agg_ind2009, aes(x = period_start_num, 
                                                            y = indexed_headcount, group = 1), 
-              color = '#6da7de', size = 1) +
+              color = '#6da7de', size = 2) +
     geom_label_repel(data = Outer_London_SF_schools_agg_ind2009, aes(x = period_start_num, y = indexed_headcount,label = label), nudge_x = 1, color = '#6da7de')+
    geom_line(data = RestofEng_SF_2009, aes(x = period_start_num, 
                                            y = indexed_headcount, group = 1), 
-             color = '#5ea15d', size = 1) +
+             color = '#5ea15d', size = 2) +
     geom_label_repel(data = RestofEng_SF_2009, aes(x = period_start_num, y = indexed_headcount, label = label), nudge_x = 1, color = '#5ea15d')+
   geom_hline(yintercept=100)+
    theme(plot.title = element_text(size = 16)) +
