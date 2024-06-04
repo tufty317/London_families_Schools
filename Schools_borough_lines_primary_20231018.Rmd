@@ -741,6 +741,82 @@ ggsave (filename = (paste0(chart_dir, "Schools_Prim_LondonZone_orNot_SF_2009_lin
 ```
 
 
+```{r fig_Rest_ofEng_Prim_schools_line_4_B, fig.height = 5.56, fig.width = 9,   echo=FALSE, warning=FALSE, message=FALSE}
+
+
+LondonZone_orNot_SF_2009_lines_summ <-
+   ggplot() +
+  theme_gla() +
+  geom_line(data = Inner_London_SF_schools_agg_ind2009, aes(x = period_start_num, 
+                                                         y = indexed_headcount, group = 1), 
+            color = '#d82222', size = 2) +
+    geom_label_repel(data = Inner_London_SF_schools_agg_ind2009,aes(x = period_start_num, y = indexed_headcount,label = label), nudge_x = 1, color = '#d82222')+
+    geom_line(data = Outer_London_SF_schools_agg_ind2009, aes(x = period_start_num, 
+                                                           y = indexed_headcount, group = 1), 
+              color = '#6da7de', size = 2) +
+    geom_label_repel(data = Outer_London_SF_schools_agg_ind2009, aes(x = period_start_num, y = indexed_headcount,label = label), nudge_x = 1, color = '#6da7de')+
+   geom_line(data = RestofEng_SF_2009, aes(x = period_start_num, 
+                                           y = indexed_headcount, group = 1), 
+             color = '#5ea15d', size = 2) +
+    geom_label_repel(data = RestofEng_SF_2009, aes(x = period_start_num, y = indexed_headcount, label = label), nudge_x = 1, color = '#5ea15d')+
+  geom_hline(yintercept=100)+
+   theme(plot.title = element_text(size = 16)) +
+  theme(legend.position = "right") +
+    scale_x_continuous(breaks = c(2009, 2012, 2015, 2018, 2022), labels = c("2009-10", "2012-13", "2015-16", "2018-19", "2022-23"))  +
+   scale_color_manual(name="", values=c('#d82222','#6da7de','#5ea15d'), labels=c("Inner London", "Outer London","Rest of England and Wales")) +
+   scale_y_continuous(labels = label_number(suffix = "%"))+ 
+   labs(title= "Change in state-funded full-time primary school pupils, 2009 - 2022",
+   subtitle = "Indexed to 2009"
+   #,
+  #     caption = paste0("Source: ONS, Chart: GLA demography")
+  )
+LondonZone_orNot_SF_2009_lines_summ
+
+
+ggsave (filename = "C:/Families/Charts_for_Daryl/Summ1_Schools_Prim_LondonZone_orNot_SF_2009_lines.svg",
+         plot = LondonZone_orNot_SF_2009_lines_summ,
+         device = "svg",
+         dpi=600,
+         width = 9,
+         units = "in")
+
+LondonZone_orNot_SF_2009_lines_rep <-
+   ggplot() +
+  theme_gla() +
+  geom_line(data = Inner_London_SF_schools_agg_ind2009, aes(x = period_start_num, 
+                                                         y = indexed_headcount, group = 1), 
+            color = '#d82222', size = 2) +
+    geom_label_repel(data = Inner_London_SF_schools_agg_ind2009,aes(x = period_start_num, y = indexed_headcount,label = label), nudge_x = 1, color = '#d82222')+
+    geom_line(data = Outer_London_SF_schools_agg_ind2009, aes(x = period_start_num, 
+                                                           y = indexed_headcount, group = 1), 
+              color = '#6da7de', size = 2) +
+    geom_label_repel(data = Outer_London_SF_schools_agg_ind2009, aes(x = period_start_num, y = indexed_headcount,label = label), nudge_x = 1, color = '#6da7de')+
+   geom_line(data = RestofEng_SF_2009, aes(x = period_start_num, 
+                                           y = indexed_headcount, group = 1), 
+             color = '#5ea15d', size = 2) +
+    geom_label_repel(data = RestofEng_SF_2009, aes(x = period_start_num, y = indexed_headcount, label = label), nudge_x = 1, color = '#5ea15d')+
+  geom_hline(yintercept=100)+
+   theme(plot.title = element_text(size = 16)) +
+  theme(legend.position = "right") +
+    scale_x_continuous(breaks = c(2009, 2012, 2015, 2018, 2022), labels = c("2009-10", "2012-13", "2015-16", "2018-19", "2022-23"))  +
+   scale_color_manual(name="", values=c('#d82222','#6da7de','#5ea15d'), labels=c("Inner London", "Outer London","Rest of England and Wales")) +
+   scale_y_continuous(labels = label_number(suffix = "%"))
+ #+ 
+#   labs(title= "Change in state-funded full-time primary school pupils, 2009 - 2022",
+#   subtitle = "Indexed to 2009",
+ #      caption = paste0("Source: ONS, Chart: GLA demography"))
+LondonZone_orNot_SF_2009_lines_rep
+
+
+ggsave (filename = "C:/Families/Charts_for_Daryl/12_A_Schools_Prim_LondonZone_orNot_SF_2009_lines.svg",
+         plot = LondonZone_orNot_SF_2009_lines_rep,
+         device = "svg",
+         dpi=600,
+         width = 9,
+         units = "in")
+
+
+```
 
 ```{r fig_London_Sec_schools_line_1, fig.height = 5.56, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
 

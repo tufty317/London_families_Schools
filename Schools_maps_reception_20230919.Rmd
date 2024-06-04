@@ -657,7 +657,6 @@ borough_boundaries <-
 
 londonmap7_diverge2 = rev(c('#943fa6', '#b47bbe', '#d2b4d6', '#eeeeee', '#c3e1db', '#96d3c8', '#63c5b5'))
 
-
 Primary_schools_geog <- input_primary_schools_change %>% 
     left_join(borough_boundaries, by=c('new_la_code' = 'new_la_cod')) %>%
       mutate(indexed_hc_Cat5 = cut(indexed_headcount, breaks = c(0, 87, 90, 96, 103, 110, 120, 1000),
@@ -697,6 +696,7 @@ Primary_schools_change_map <- Primary_schools_geog %>%
         axis.ticks.x = element_blank(), 
         axis.ticks.y = element_blank(),
         panel.border = element_rect(colour = "black", fill=NA, size=2)) +
+  
   scale_fill_manual("% value\nin 2016-17", values =londonmap7_diverge2)+ 
   labs(title = "Change in Primary school headcount in London, 2016-17 to 2022-23", 
        subtitle = "Indexed to academic year 2016-17",
@@ -731,6 +731,85 @@ ggsave (filename = (paste0(chart_dir, "Schools_LondonAndAround_Primary_change_ma
 
 ```
 
+```{r fig_London_Reception_schools_map_7_B, fig.height = 5.56, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+## Creating map for report
+
+#hist(input_primary_schools_change$indexed_headcount)
+#summary(input_primary_schools_change$indexed_headcount)
+
+londonmap7_diverge2 = rev(c('#943fa6', '#b47bbe', '#d2b4d6', '#eeeeee', '#c3e1db', '#96d3c8', '#63c5b5'))
+
+Primary_schools_geog <- input_primary_schools_change %>% 
+    left_join(borough_boundaries, by=c('new_la_code' = 'new_la_cod')) %>%
+      mutate(indexed_hc_Cat5 = cut(indexed_headcount, breaks = c(76, 83, 90, 96, 103, 110, 117, 124),
+                      right=FALSE,
+                      labels = c("76 -",
+                                 "83 - ",
+                                 "90 - ",
+                                 "96 - ",
+                                 "103 - ",
+                                 "110 - ",
+                                 "117+ "))) %>%
+  data.frame()
+
+#new_scale_diverge4 = rev(c('#6c4068', '#8f5e8b', '#af82aa', '#cba8c6', '#eeeeee','#91c9b4', '#64a28c', #'#457b68', '#305447'))
+
+#new_scale_diverge5 = rev(c('#432940','#6c4068','#8f5e8b','#af82aa','#cba8c6','#eeeeee','#91c9b4','#64a28c'#,'#457b68','#305447','#20302a'))
+
+
+Primary_schools_change_map_rep <- Primary_schools_geog %>%
+  ggplot() +
+  geom_sf(aes(geometry=geometry, fill=indexed_hc_Cat5),  lwd = 0.1)+
+    geom_sf(data = south_region_boundaries, aes(x=LONG, y=LAT, geometry=geometry), alpha = 0.01, lwd = 0.7, colour = "black")+
+  theme(legend.position = "right")+
+  theme(plot.title = element_text(size = 16, hjust = 0.5)) +
+  theme(legend.position = "right") +
+  #theme(legend.title = element_blank()) +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank()) +
+  theme(panel.background = element_blank()) +
+  theme(plot.caption = element_text (hjust = 0)) +
+  theme(plot.title = element_text(size = 16)) +  #, hjust = 0.5
+  theme(plot.subtitle = element_text(size = 12)) + #, hjust= 0.5
+  theme(plot.caption = element_text(size = 10, hjust= 0)) +
+  theme(legend.text = element_text(size=16)) +
+  theme(legend.title = element_text(size=16)) +
+  theme(legend.key.height= unit(1, 'cm'),
+        legend.key.width= unit(0.7, 'cm')) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_blank(), 
+        axis.text.y = element_blank(), 
+        axis.ticks.x = element_blank(), 
+        axis.ticks.y = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=2)) +
+    scale_fill_manual("% value\nin 2016-17", values = londonmap7_diverge2, 
+                      limits = levels(Primary_schools_geog$indexed_hc_Cat5)) + 
+    #labs(title = "Change in Primary school headcount in London, 2016-17 to 2022-23", 
+  #      subtitle = "Indexed to academic year 2016-17",
+  #      caption = "Source: DFE, Chart: GLA demography") +
+    coord_sf(xlim = c(480000,580000), ylim = c(130000, 220000))
+
+Primary_schools_change_map_rep
+
+ggsave (filename = "C:/Families/Charts_for_Daryl/12_B1_Schools_LondonAndAround_Primary_change_map.svg",
+         plot = Primary_schools_change_map_rep,
+         device = "svg",
+         dpi=600,
+         width = 9,
+         height = 5.56,
+         units = "in")
+
+ggsave (filename = "C:/Families/Charts_for_Daryl/12_B1_Schools_LondonAndAround_Primary_change_map.png",
+         plot = Primary_schools_change_map_rep,
+         device = "png",
+         dpi=600,
+         width = 9,
+         height = 5.56,
+         units = "in")
+
+```
 
 
 ```{r fig_London_Secondary_schools_map, fig.height = 5.56, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
@@ -831,6 +910,75 @@ ggsave (filename = (paste0(chart_dir, "Schools_LondonAndAround_Secondary_change_
          height = 5.56,
          units = "in")
 
+
+
+```
+
+```{r fig_London_Secondary_schools_map_B, fig.height = 5.56, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+
+# Chart for report
+
+londonmap7_diverge2 = rev(c('#943fa6', '#b47bbe', '#d2b4d6', '#eeeeee', '#c3e1db', '#96d3c8', '#63c5b5'))
+
+
+Secondary_schools_geog <- Secondary_schools_change %>% 
+    left_join(borough_boundaries, by=c('new_la_code' = 'new_la_cod')) %>%
+      mutate(indexed_hc_Cat5 = cut(indexed_full_time, breaks = c(76, 83, 90, 96, 103, 110, 117, 124),
+                      right=FALSE,
+                      labels = c("76 -",
+                                 "83 - ",
+                                 "90 - ",
+                                 "96 - ",
+                                 "103 - ",
+                                 "110 - ",
+                                 "117+ "))) %>%
+  data.frame()
+
+Secondary_schools_change_map_rep <- Secondary_schools_geog %>%
+  ggplot() +
+  geom_sf(aes(geometry=geometry, fill=indexed_hc_Cat5),  lwd = 0.1)+
+    geom_sf(data = south_region_boundaries, aes(x=LONG, y=LAT, geometry=geometry), alpha = 0.01, lwd = 0.7, colour = "black")+
+  theme(plot.title = element_text(size = 16, hjust = 0.5)) +
+  theme(legend.position = "right") +
+  #theme(legend.title = element_blank()) +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank()) +
+  theme(panel.background = element_blank()) +
+  theme(plot.caption = element_text (hjust = 0)) +
+  theme(plot.title = element_text(size = 16)) +  #, hjust = 0.5
+  theme(plot.subtitle = element_text(size = 12)) + #, hjust= 0.5
+  theme(plot.caption = element_text(size = 10, hjust= 0)) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_blank(), 
+        axis.text.y = element_blank(), 
+        axis.ticks.x = element_blank(), 
+        axis.ticks.y = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=2)) +
+    scale_fill_manual("% value\nin 2016-17", values = londonmap7_diverge2, limits = levels(Secondary_schools_geog$indexed_hc_Cat5), guide = "none") + 
+ # labs(title = "Change in Secondary school headcount in London, 2016-17 to 2022-23", 
+#       subtitle = "Indexed to academic year 2016-17",
+#       caption = "Source: DFE, Chart: GLA demography") +
+    coord_sf(xlim = c(480000,580000), ylim = c(130000, 220000))
+
+Secondary_schools_change_map_rep
+
+ggsave (filename = "C:/Families/Charts_for_Daryl/12_B2_Schools_LondonAndAround_Secondary_change_map.svg",
+         plot = Secondary_schools_change_map_rep,
+         device = "svg",
+         dpi=600,
+         width = 9,
+         height = 5.56,
+         units = "in")
+
+ggsave (filename = "C:/Families/Charts_for_Daryl/12_B2_Schools_LondonAndAround_Secondary_change_map.png",
+         plot = Secondary_schools_change_map_rep,
+         device = "png",
+         dpi=600,
+         width = 9,
+         height = 5.56,
+         units = "in")
 
 
 ```

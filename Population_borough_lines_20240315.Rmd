@@ -1,0 +1,458 @@
+---
+title: "Population analysis - Ages 4 and 10 - 15/03/24"
+output: 
+  html_document:
+    css: Wil_style.css
+    theme: default
+    toc: TRUE
+    toc_float: TRUE
+    number_sections: TRUE
+always_allow_html: yes
+---
+
+```{r setup1, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+library(zoo)
+library(data.table)
+library(tidyverse)
+library(gglaplot)
+library(ggplot2)
+library(scales)
+library(readxl)
+library(knitr)
+library(sf)
+library(sp)
+library(kableExtra)
+library(magick)
+
+library(plotly)    
+library(RColorBrewer)
+library(htmltools)
+library(prettydoc)
+library(rmdformats)
+library(ggrepel)
+
+chart_dir <- 'CHARTS/'
+
+data_dir <- 'DATA/'
+
+# Disable scientific notation
+options(scipen=999)
+
+```
+
+
+```{r setup2, include=FALSE}
+
+boroughcodes <- fread(paste0(data_dir,"InnerLondon.csv")) %>%   
+  data.frame
+
+## Population data for children 
+
+London_childpop <- fread("C:/State_of_London_Report_Demography_Chapter_and_MYE/MYE_2022/MYE_London_Boroughs_SYA4and10_Popn_2011 to 2022.csv") %>%   
+  data.frame
+
+# Merge with Inner/Outer file
+
+London_childpop_zone_wide <- London_childpop %>%
+  left_join(boroughcodes, by=c("ladcode21"="BoroughCode"))%>% 
+  mutate(across(c(Inner, laname21), factor)) %>%
+  mutate(Inner_factor= recode(Inner, "1"="Inner", "0"="Outer")) %>%
+   data.frame() 
+
+London_childpop_zone_long <- London_childpop_zone_wide  %>%
+  pivot_longer(
+    cols = starts_with("X"),
+    names_to = "year",
+    values_to = "pop",
+    values_drop_na = TRUE) %>%
+   mutate(Year = gsub("X", "", year)) %>%
+  data.frame()
+
+London_childpop_zone_long_sum = London_childpop_zone_long %>% 
+  group_by(ladcode21, laname21, age, Inner_factor, Year) %>% 
+  summarise(poptot=sum(pop)) %>% 
+  data.frame()
+
+
+```
+
+
+```{r fig_London_age4_abs, fig.height = 5, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+# Plot age 4 numbers over time by borough
+
+catcolour2 = rev(c('#d82222', '#6da7de'))
+
+London_age4_lines_abs <- London_childpop_zone_long_sum %>%
+  filter(age == 4) %>%
+  filter(laname21 != "City of London") %>%
+  ggplot(aes(x = Year, y = poptot, group = laname21, color = Inner_factor
+             , text = paste("Year  :", Year,
+                            "<br>Borough : ", laname21,
+                            "<br>Population ", round(poptot, digits = 0))
+  )) +
+  theme_gla() +
+  geom_line() + 
+ scale_color_manual(name='Zone:', values = catcolour2) +
+  labs(title= "Age 4 population by borough, London, 2011 - 2022", 
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+
+ggplotly(London_age4_lines_abs, tooltip = "text") %>%
+  style(hoverlabel = list(bgcolor = "white")) %>%
+  layout(title= list(x = 0.05,
+                     text = "<b>Age 4 population by borough, London, 2011 - 2022<b>", 
+                     font=list(size = 15, family = "Arial")))
+
+
+
+```
+
+
+```{r fig_London_age4_ind, fig.height = 5, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+# Plot London age 4 population over time, by borough, indexed to 2011 value
+
+London_age4_lines_ind <- London_childpop_zone_long_sum %>%
+  filter(laname21 != "City of London") %>%
+  filter(age == 4) %>%
+  group_by(laname21) %>% 
+  mutate(indexed_pop = (poptot/first(poptot))*100) %>% 
+  ggplot(aes(x = Year, y = indexed_pop, group = laname21, color = Inner_factor
+             , text = paste("Year  :", Year,
+                            "<br>Borough : ", laname21,
+                            "<br>Population as % of 2011 ", round(indexed_pop, digits = 0))
+  )) +
+  theme_gla() +
+  geom_line() + 
+  geom_hline(yintercept=100)+
+ scale_color_manual(name='Zone:', values = catcolour2) +
+  labs(title= "Age 4 population by borough, London, 2011 - 2022, indexed to 2011", 
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+
+ggplotly(London_age4_lines_ind, tooltip = "text") %>%
+  style(hoverlabel = list(bgcolor = "white")) %>%
+  layout(title= list(x = 0.05,
+                     text = "<b>Age 4 population by borough, London, 2011 - 2022, indexed to 2011<b>", 
+                     font=list(size = 15, family = "Arial")))
+
+```
+
+
+```{r fig_London_age4_zone_abs, fig.height = 5, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+# Aggregate by zone of London, and plot again
+
+agg_London_age4_pop <- London_childpop_zone_long_sum %>%
+  filter(laname21 != "City of London") %>%
+  filter(age == 4) %>%
+  group_by(Year, Inner_factor) %>% 
+  summarise(agg_pop = sum(poptot)) %>%
+  data.frame()
+
+agg_London_age4_pop_line_abs <- agg_London_age4_pop %>%
+   ggplot(aes(x = Year, y = agg_pop/1000, group = Inner_factor, color = Inner_factor
+             , text = paste("Year  :", Year,
+                            "<br>Zone : ", Inner_factor,
+                            "<br>Population : ", round(agg_pop, digits = 0))
+  )) +
+  theme_gla() +
+  geom_line() + 
+ scale_color_manual(name='Zone:', values = catcolour2) +
+  labs(title= "Age 4 population (thousands) by Zone, London, 2011 - 2022", 
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+
+ggplotly(agg_London_age4_pop_line_abs, tooltip = "text") %>%
+  style(hoverlabel = list(bgcolor = "white")) %>%
+  layout(title= list(x = 0.05,
+                     text = "<b>Age 4 population (thousands) by Zone, London, 2011 - 2022<b>", 
+                     font=list(size = 15, family = "Arial")))
+
+# calculate change by zone since 2018 
+
+ 
+agg_London_age4_pop_change2022_zone <- agg_London_age4_pop %>%
+  filter(Year >= 2017) %>%
+  group_by(Inner_factor) %>% 
+  mutate(perc_change = ((agg_pop/first(agg_pop))*100)-100) %>% 
+  filter(Year == 2022) %>%
+  data.frame()
+
+agg_London_age4_pop_change2022_all <- agg_London_age4_pop %>%
+  filter(Year >= 2017) %>%
+  group_by(Year) %>% 
+  summarise(poptot=sum(agg_pop)) %>% 
+  mutate(perc_change = ((poptot/first(poptot))*100)-100) %>% 
+  filter(Year == 2022) %>%
+  data.frame()
+
+
+
+
+```
+
+
+```{r fig_London_age4_zone_ind, fig.height = 5, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+# Index aggregated values to 2011 value
+
+agg_London_age4_pop_line_ind <- agg_London_age4_pop  %>%
+   group_by(Inner_factor) %>% 
+   mutate(indexed_pop = (agg_pop/first(agg_pop))*100) %>% 
+   ggplot(aes(x = Year, y = indexed_pop, group = Inner_factor, color = Inner_factor
+             , text = paste("Year  :", Year,
+                            "<br>Zone : ", Inner_factor,
+                            "<br>POpulation as % of 2011 : ", round(indexed_pop, digits = 0))
+  )) +
+  theme_gla() +
+  geom_line() + 
+  geom_hline(yintercept=100)+
+  #scale_y_continuous(breaks = seq(88, 102, 2)) + #, limits = c(88, 102)) +
+ scale_color_manual(name='Zone:', values = catcolour2) +
+  labs(title= "Age 4 population by Zone, London, 2011 - 2022, indexed to 2011", 
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+
+ggplotly(agg_London_age4_pop_line_ind, tooltip = "text") %>%
+  style(hoverlabel = list(bgcolor = "white")) %>%
+  layout(title= list(x = 0.05,
+                     text = "<b>Age 4 population by Zone, London, 2011 - 2022, indexed to 2011<b>", 
+                     font=list(size = 15, family = "Arial")))
+
+
+
+
+
+```
+
+```{r fig_London_age10_abs, fig.height = 5, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+# Plot age 10 numbers over time by borough
+
+catcolour2 = rev(c('#d82222', '#6da7de'))
+
+
+
+
+London_age10_lines_abs <- London_childpop_zone_long_sum %>%
+  filter(age == 10) %>%
+  filter(laname21 != "City of London") %>%
+  ggplot(aes(x = Year, y = poptot, group = laname21, color = Inner_factor
+             , text = paste("Year  :", Year,
+                            "<br>Borough : ", laname21,
+                            "<br>Population ", round(poptot, digits = 0))
+  )) +
+  theme_gla() +
+  geom_line() + 
+ scale_color_manual(name='Zone:', values = catcolour2) +
+  labs(title= "Age 10 population by borough, London, 2011 - 2022", 
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+
+ggplotly(London_age10_lines_abs, tooltip = "text") %>%
+  style(hoverlabel = list(bgcolor = "white")) %>%
+  layout(title= list(x = 0.05,
+                     text = "<b>Age 10 population by borough, London, 2011 - 2022<b>", 
+                     font=list(size = 15, family = "Arial")))
+
+
+# Aggregate by zone of London
+
+agg_London_age10_pop <- London_childpop_zone_long_sum %>%
+  filter(laname21 != "City of London") %>%
+  filter(age == 10) %>%
+  group_by(Year, Inner_factor) %>% 
+  summarise(agg_pop = sum(poptot)) %>%
+  data.frame()
+
+# calculate change by zone since 2018 
+
+agg_London_age10_pop_change2022_zone <- agg_London_age10_pop %>%
+  filter(Year >= 2017) %>%
+  group_by(Inner_factor) %>% 
+  mutate(perc_change = ((agg_pop/first(agg_pop))*100)-100) %>% 
+  filter(Year == 2022) %>%
+  data.frame()
+
+agg_London_age10_pop_change2022_all <- agg_London_age10_pop %>%
+  filter(Year >= 2017) %>%
+  group_by(Year) %>% 
+  summarise(poptot=sum(agg_pop)) %>% 
+  mutate(perc_change = ((poptot/first(poptot))*100)-100) %>% 
+  filter(Year == 2022) %>%
+  data.frame()
+
+
+
+```
+
+
+
+```{r fig_London_age10_ind, fig.height = 5, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+# Plot London age 10 population over time, by borough, indexed to 2011 value
+
+London_age10_lines_ind <- London_childpop_zone_long_sum %>%
+  filter(laname21 != "City of London") %>%
+  filter(age == 10) %>%
+  group_by(laname21) %>% 
+  mutate(indexed_pop = (poptot/first(poptot))*100) %>% 
+  ggplot(aes(x = Year, y = indexed_pop, group = laname21, color = Inner_factor
+             , text = paste("Year  :", Year,
+                            "<br>Borough : ", laname21,
+                            "<br>Population as % of 2011 ", round(indexed_pop, digits = 0))
+  )) +
+  theme_gla() +
+  geom_line() + 
+  geom_hline(yintercept=100)+
+ scale_color_manual(name='Zone:', values = catcolour2) +
+  labs(title= "Age 10 population by borough, London, 2011 - 2022, indexed to 2011", 
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+
+ggplotly(London_age10_lines_ind, tooltip = "text") %>%
+  style(hoverlabel = list(bgcolor = "white")) %>%
+  layout(title= list(x = 0.05,
+                     text = "<b>Age 10 population by borough, London, 2011 - 2022, indexed to 2011<b>", 
+                     font=list(size = 15, family = "Arial")))
+
+```
+
+
+
+```{r fig_London_age10_zone_abs, fig.height = 5, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+# Aggregate by zone of London, and plot again
+
+agg_London_age10_pop <- London_childpop_zone_long_sum %>%
+  filter(laname21 != "City of London") %>%
+  filter(age == 10) %>%
+  group_by(Year, Inner_factor) %>% 
+  summarise(agg_pop = sum(poptot)) %>%
+  data.frame()
+
+agg_London_age10_pop_line_abs <- agg_London_age10_pop %>%
+   ggplot(aes(x = Year, y = agg_pop/1000, group = Inner_factor, color = Inner_factor
+             , text = paste("Year  :", Year,
+                            "<br>Zone : ", Inner_factor,
+                            "<br>Population : ", round(agg_pop, digits = 0))
+  )) +
+  theme_gla() +
+  geom_line() + 
+ scale_color_manual(name='Zone:', values = catcolour2) +
+  labs(title= "Age 10 population (thousands) by Zone, London, 2011 - 2022", 
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+
+ggplotly(agg_London_age10_pop_line_abs, tooltip = "text") %>%
+  style(hoverlabel = list(bgcolor = "white")) %>%
+  layout(title= list(x = 0.05,
+                     text = "<b>Age 10 population (thousands) by Zone, London, 2011 - 2022<b>", 
+                     font=list(size = 15, family = "Arial")))
+
+
+
+```
+
+
+
+
+```{r fig_London_age10_zone_ind, fig.height = 5, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+# Index aggregated values to 2011 value
+
+agg_London_age10_pop_line_ind <- agg_London_age10_pop  %>%
+   group_by(Inner_factor) %>% 
+   mutate(indexed_pop = (agg_pop/first(agg_pop))*100) %>% 
+   ggplot(aes(x = Year, y = indexed_pop, group = Inner_factor, color = Inner_factor
+             , text = paste("Year  :", Year,
+                            "<br>Zone : ", Inner_factor,
+                            "<br>Population as % of 2011 : ", round(indexed_pop, digits = 0))
+  )) +
+  theme_gla() +
+  geom_line() + 
+  geom_hline(yintercept=100)+
+ # scale_y_continuous(breaks = seq(88, 102, 2)) + #, limits = c(88, 102)) +
+ scale_color_manual(name='Zone:', values = catcolour2) +
+  labs(title= "Age 10 population by Zone, London, 2011 - 2022, indexed to 2011", 
+       caption = paste0("Source: ONS, Chart: GLA demography"))
+
+ggplotly(agg_London_age10_pop_line_ind, tooltip = "text") %>%
+  style(hoverlabel = list(bgcolor = "white")) %>%
+  layout(title= list(x = 0.05,
+                     text = "<b>Age 10 population by Zone, London, 2011 - 2022, indexed to 2011<b>", 
+                     font=list(size = 15, family = "Arial")))
+
+
+```
+
+
+```{r fig_London_age4_change, fig.height = 9, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+# Plot London age 4 population change since 2018, by borough
+
+London_age4_change <- London_childpop_zone_long_sum %>%
+  filter(laname21 != "City of London") %>%
+  filter(age == 4) %>%
+  filter(Year >= 2017) %>%
+  group_by(laname21) %>% 
+  mutate(perc_change = ((poptot/first(poptot))*100)-100) %>% 
+  data.frame()
+
+London_age4_change_2022 <- London_age4_change %>%
+  filter(Year == 2022) %>%
+  mutate(Name = fct_reorder(laname21, perc_change)) %>%
+  data.frame()
+
+catcolour2 = rev(c('#d82222', '#6da7de'))
+ 
+London_age4_change2022_chart <- ggplot(data = London_age4_change_2022, aes(x = Name, y = perc_change, fill = Inner_factor)) +
+  theme_gla() +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(name = "", values = catcolour2) +
+  coord_flip() +
+  labs(title = "% change in population of children age 4 since 2018",
+        caption = paste0("Source: ONS mid year estimates, 2022\nChart: GLA demography"))
+ London_age4_change2022_chart
+
+```
+
+
+```{r fig_London_age10_change, fig.height = 9, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+# Plot London age 10 population change since 2018, by borough
+
+London_age10_change <- London_childpop_zone_long_sum %>%
+  filter(laname21 != "City of London") %>%
+  filter(age == 10) %>%
+  filter(Year >= 2017) %>%
+  group_by(laname21) %>% 
+  mutate(perc_change = ((poptot/first(poptot))*100)-100) %>% 
+  data.frame()
+
+London_age10_change_2022 <- London_age10_change %>%
+  filter(Year == 2022) %>%
+  mutate(Name = fct_reorder(laname21, perc_change)) %>%
+  data.frame()
+
+catcolour2 = rev(c('#d82222', '#6da7de'))
+ 
+London_age10_change2022_chart <- ggplot(data = London_age10_change_2022, aes(x = Name, y = perc_change, fill = Inner_factor)) +
+  theme_gla() +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(name = "", values = catcolour2) +
+  coord_flip() +
+  labs(title = "% change in population of children age 10 since 2018",
+        caption = paste0("Source: ONS mid year estimates, 2022\nChart: GLA demography"))
+ London_age10_change2022_chart
+
+```
+
+
+
+```{r save_data, fig.height = 9, fig.width = 9,  echo=FALSE, warning=FALSE, message=FALSE}
+
+fwrite(London_age10_change_2022, "C:/State_of_London_Report_Demography_Chapter_and_MYE/MYE_2022/London_age10_change_2018to2022.csv")
+
+fwrite(London_age4_change_2022, "C:/State_of_London_Report_Demography_Chapter_and_MYE/MYE_2022/London_age4_change_2018to2022.csv")
+
+
+```
